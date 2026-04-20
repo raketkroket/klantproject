@@ -49,7 +49,7 @@ const year = new Date().getFullYear()
 
         <div>
           <h4 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-5">Contact</h4>
-          <p class="text-sm font-semibold text-gray-700 mb-3">Informatiecentrum</p>
+          <p class="text-sm font-semibold text-gray-700 mb-3">Neem contact op</p>
           <div class="space-y-2.5">
             <a href="tel:09000918" class="flex items-center gap-2.5 text-sm text-gray-500 hover:text-roc-500 transition-colors">
               <Phone :size="14" class="shrink-0" /> 0900 - 0918

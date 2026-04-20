@@ -33,7 +33,7 @@ export function Contact() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute inset-x-0 bottom-6">
-          <div className="max-w-5xl mx-auto px-4 sm:px-8 md:px-16">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-10">
             <span className="text-xs font-bold tracking-widest text-roc-300 uppercase block mb-1">Informatiecentrum</span>
             <h1 className="text-3xl sm:text-4xl font-bold text-white">Contact</h1>
             <p className="text-white/70 text-sm mt-1">Welkom bij het Informatiecentrum</p>

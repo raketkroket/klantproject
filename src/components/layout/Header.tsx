@@ -37,15 +37,28 @@ export function Header() {
           style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, transparent 100%)' }}
         />
 
-        {/* Logo — always top-left */}
-        <div className="absolute top-0 left-0 pointer-events-auto">
-          <button onClick={() => navigate('home')} aria-label="Ga naar homepage">
-            <img src="/image.png" alt="ROC van Flevoland" className="h-16 md:h-20 w-auto object-contain" />
-          </button>
+        {/* Logo — always top-left, aligned with page container */}
+        <div className="absolute top-0 left-0 right-0 pointer-events-none">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-10">
+            <button
+              onClick={() => navigate('home')}
+              aria-label="Ga naar homepage"
+              className="flex items-stretch bg-white shadow-sm pointer-events-auto"
+            >
+              <div className="flex items-center justify-center px-4 md:px-6 py-3">
+                <img src="/image.png" alt="ROC van Flevoland" className="h-12 md:h-16 w-auto object-contain" />
+              </div>
+              <div className="bg-roc-500 flex items-center px-4 md:px-5 py-3">
+                <span className="text-white text-[11px] md:text-sm font-bold leading-tight text-left">
+                  maakt<br />werk van<br />je talent
+                </span>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Desktop nav — hidden on mobile */}
-        <div className="hidden md:flex justify-end pr-8 pt-5 pointer-events-auto">
+        <div className="hidden md:flex justify-end pr-6 md:pr-10 pt-5 pointer-events-auto">
           <nav className="bg-white rounded-full shadow-lg px-2 py-2 flex items-center gap-1">
             {navItems.map((item) => (
               <button

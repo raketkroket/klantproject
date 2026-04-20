@@ -55,19 +55,22 @@ export function Challenges() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gray-900 pt-32 pb-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <span className="inline-block text-xs font-bold tracking-widest text-roc-400 uppercase mb-4">
-            Voor studenten
-          </span>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Challenges</h1>
-          <p className="text-gray-400 max-w-lg">
-            Pak een uitdaging op van een bedrijf en bouw iets dat ertoe doet.
-          </p>
+      <div className="relative w-full" style={{ height: '420px' }}>
+        <img
+          src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1600"
+          alt="Challenges"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-black/25" />
+        <div className="absolute bottom-0 left-8 md:left-16 translate-y-1/2 z-10">
+          <div className="bg-roc-500 rounded-2xl px-8 py-7 max-w-xs shadow-xl">
+            <h1 className="text-3xl font-bold text-white mb-1">Challenges</h1>
+            <p className="text-white/80 text-sm">Pak een uitdaging op van een bedrijf</p>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-6 pt-28 pb-10">
         <div className="flex justify-end mb-8">
           <button
             onClick={() => setShowForm(true)}

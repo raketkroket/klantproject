@@ -101,9 +101,11 @@ body {
   border-radius: 9999px;
   font-size: 0.875rem;
   background: #f9fafb;
+  color: #111827;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
+.form-input::placeholder { color: #9ca3af; }
 .form-input:focus {
   border-color: transparent;
   box-shadow: 0 0 0 2px var(--color-roc-500);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Menu, X, Search, User, LayoutDashboard, LogOut, ChevronDown } from 'lucide-vue-next'
 import { useAuth } from '../../composables/useAuth'
@@ -22,13 +22,30 @@ const mobileOpen = ref(false)
 const searchOpen = ref(false)
 const searchQuery = ref('')
 
+const closeAllOverlays = () => {
+  mobileOpen.value = false
+  loginOpen.value = false
+  searchOpen.value = false
+  searchQuery.value = ''
+  document.body.style.overflow = ''
+}
+
+const openLogin = () => {
+  mobileOpen.value = false
+  searchOpen.value = false
+  searchQuery.value = ''
+  document.body.style.overflow = ''
+  loginOpen.value = true
+}
+
 watch(mobileOpen, (v) => {
   document.body.style.overflow = v ? 'hidden' : ''
 })
 watch(() => route.fullPath, () => {
-  mobileOpen.value = false
-  loginOpen.value = false
-  searchOpen.value = false
+  closeAllOverlays()
+})
+
+onBeforeUnmount(() => {
   document.body.style.overflow = ''
 })
 
@@ -102,7 +119,7 @@ const go = (name: string) => router.push({ name })
           v-else
           aria-label="Inloggen"
           class="p-2.5 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
-          @click="loginOpen = true"
+          @click="openLogin"
         >
           <User :size="16" />
         </button>
@@ -158,7 +175,7 @@ const go = (name: string) => router.push({ name })
           <button
             v-else
             class="w-full bg-roc-500 text-white px-4 py-3 rounded-xl text-base font-semibold flex items-center gap-2"
-            @click="loginOpen = true"
+            @click="openLogin"
           >
             <User :size="17" /> Inloggen
           </button>

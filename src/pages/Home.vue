@@ -168,9 +168,9 @@ const goTo = (i: number) => { activeSlide.value = i }
         <div class="flex gap-8 shrink-0" :style="{ animation: 'marquee 28s linear infinite' }">
           <div
             v-for="(p, i) in partnersDouble" :key="`${p.id}-${i}`"
-            class="shrink-0 w-36 h-16 bg-white rounded-xl border border-gray-100 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
+            class="shrink-0 w-44 h-20 bg-white rounded-xl border border-gray-100 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
           >
-            <img v-if="p.logo" :src="p.logo" :alt="p.name" class="max-h-10 max-w-28 object-contain" />
+            <img v-if="p.logo" :src="p.logo" :alt="p.name" class="max-h-12 max-w-36 object-contain" />
             <span v-else class="text-xs font-semibold text-gray-300">{{ p.name }}</span>
           </div>
         </div>

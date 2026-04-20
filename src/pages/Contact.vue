@@ -107,13 +107,13 @@ const handleSubmit = async (e: Event) => {
               <span class="w-5 h-5 rounded-full bg-roc-500 flex items-center justify-center text-white">
                 <MessageSquare :size="10" />
               </span>
-              Informatiecentrum
+              Neem contact op
             </span>
             <h1 class="text-4xl sm:text-5xl md:text-[3.75rem] font-bold text-gray-900 tracking-tight leading-[1.05] mb-6">
-              Welkom bij het <span class="relative inline-block">
-                <span class="relative z-10 text-roc-500">Informatie&shy;centrum</span>
+              Laten we <span class="relative inline-block">
+                <span class="relative z-10 text-roc-500">contact</span>
                 <span class="absolute left-0 right-0 bottom-1 h-3 bg-roc-100/80 -z-0"></span>
-              </span>
+              </span> maken.
             </h1>
             <p class="text-lg text-gray-600 leading-relaxed max-w-2xl">
               Wij zijn jouw eerste aanspreekpunt voor vragen over opleidingen, aanmelden of studiekeuze. Bel, mail of app — we helpen je graag verder.
@@ -175,7 +175,7 @@ const handleSubmit = async (e: Event) => {
         </div>
         <div class="md:col-span-7 md:pt-3" data-animate data-animate-delay="120">
           <p class="text-gray-600 leading-relaxed text-base md:text-lg">
-            Een opleiding kiezen kan lastig zijn. Dat begrijpen wij heel goed. Heb je vragen over een van onze opleidingen, of heb je hulp nodig bij je aanmelding? Dan is het Informatiecentrum van het ROC van Flevoland de plek waar je moet zijn. Ons team staat klaar om al je vragen te beantwoorden.
+            Een opleiding kiezen kan lastig zijn. Dat begrijpen wij heel goed. Heb je vragen over een van onze opleidingen, of heb je hulp nodig bij je aanmelding? Dan ben je bij het ROC van Flevoland aan het juiste adres. Ons team staat klaar om al je vragen te beantwoorden.
           </p>
         </div>
       </div>

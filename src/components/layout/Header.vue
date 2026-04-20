@@ -25,7 +25,12 @@ const searchQuery = ref('')
 watch(mobileOpen, (v) => {
   document.body.style.overflow = v ? 'hidden' : ''
 })
-watch(() => route.name, () => { mobileOpen.value = false })
+watch(() => route.fullPath, () => {
+  mobileOpen.value = false
+  loginOpen.value = false
+  searchOpen.value = false
+  document.body.style.overflow = ''
+})
 
 const go = (name: string) => router.push({ name })
 </script>
@@ -39,14 +44,14 @@ const go = (name: string) => router.push({ name })
 
     <div class="absolute top-0 left-0 right-0 pointer-events-none">
       <div class="max-w-[1400px] mx-auto px-6 md:px-10">
-        <button aria-label="Ga naar homepage" class="pointer-events-auto block" @click="go('home')">
+        <button aria-label="Ga naar homepage" class="pointer-events-auto inline-block" @click="go('home')">
           <img src="/image.png" alt="ROC van Flevoland" class="h-20 md:h-24 w-auto object-contain" />
         </button>
       </div>
     </div>
 
-    <div class="hidden md:flex justify-end pr-6 md:pr-10 pt-5 pointer-events-auto">
-      <nav class="bg-white rounded-full shadow-lg px-2 py-2 flex items-center gap-1">
+    <div class="hidden md:flex justify-end pr-6 md:pr-10 pt-5">
+      <nav class="bg-white rounded-full shadow-lg px-2 py-2 flex items-center gap-1 pointer-events-auto">
         <button
           v-for="item in navItems" :key="item.name"
           :class="['flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap', route.name === item.name ? 'bg-roc-500 text-white' : 'text-gray-700 hover:bg-gray-100']"

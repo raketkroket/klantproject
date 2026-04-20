@@ -222,6 +222,7 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
       </template>
     </div>
 
+    <Teleport to="body">
     <div v-if="selected" class="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4" style="animation: backdropFadeIn 0.2s ease-out">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
       <article
@@ -271,6 +272,7 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
         </div>
       </article>
     </div>
+    </Teleport>
   </div>
 </template>
 

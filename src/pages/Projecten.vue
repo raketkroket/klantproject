@@ -149,6 +149,14 @@ const handleSubmit = async () => {
 const isVideoUrl = (p: Project) =>
   p.media_type === 'video' || /\.(mp4|webm|mov)(\?|$)/i.test(p.image_url ?? '')
 
+const normalizeUrl = (url?: string | null) => {
+  if (!url) return ''
+  const trimmed = url.trim()
+  if (!trimmed) return ''
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed
+  return `https://${trimmed.replace(/^\/+/, '')}`
+}
+
 const daysAgo = (iso: string) => {
   const d = (Date.now() - new Date(iso).getTime()) / 86_400_000
   if (d < 1) return 'Vandaag'
@@ -387,14 +395,14 @@ const stats = computed(() => ({
 
               <div class="flex items-center gap-3 mt-auto">
                 <a
-                  v-if="featured.demo_url" :href="featured.demo_url" target="_blank" rel="noreferrer"
+                  v-if="featured.demo_url" :href="normalizeUrl(featured.demo_url)" target="_blank" rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 bg-roc-500 hover:bg-roc-600 text-white font-semibold px-5 py-3 rounded-full text-sm shadow-lg shadow-roc-500/20 transition-all"
                   @click.stop
                 >
                   <ExternalLink :size="14" /> Open demo
                 </a>
                 <a
-                  v-if="featured.github_url" :href="featured.github_url" target="_blank" rel="noreferrer"
+                  v-if="featured.github_url" :href="normalizeUrl(featured.github_url)" target="_blank" rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 bg-white hover:bg-stone-50 text-gray-900 font-semibold px-5 py-3 rounded-full text-sm border border-stone-200 hover:border-gray-900 transition-all"
                   @click.stop
                 >
@@ -544,13 +552,13 @@ const stats = computed(() => ({
 
           <div class="flex flex-wrap items-center gap-3 mt-auto pt-4">
             <a
-              v-if="activeProject.demo_url" :href="activeProject.demo_url" target="_blank" rel="noreferrer"
+              v-if="activeProject.demo_url" :href="normalizeUrl(activeProject.demo_url)" target="_blank" rel="noopener noreferrer"
               class="inline-flex items-center gap-2 bg-roc-500 hover:bg-roc-600 text-white font-semibold px-5 py-3 rounded-full text-sm shadow-lg shadow-roc-500/20 transition-all"
             >
               <ExternalLink :size="14" /> Live demo
             </a>
             <a
-              v-if="activeProject.github_url" :href="activeProject.github_url" target="_blank" rel="noreferrer"
+              v-if="activeProject.github_url" :href="normalizeUrl(activeProject.github_url)" target="_blank" rel="noopener noreferrer"
               class="inline-flex items-center gap-2 bg-white hover:bg-stone-50 text-gray-900 font-semibold px-5 py-3 rounded-full text-sm border border-stone-200 hover:border-gray-900 transition-all"
             >
               <GitBranch :size="14" /> Source code

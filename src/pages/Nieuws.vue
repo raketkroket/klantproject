@@ -222,41 +222,41 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
       </template>
     </div>
 
-    <div v-if="selected" class="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6" style="animation: backdropFadeIn 0.2s ease-out">
+    <div v-if="selected" class="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4" style="animation: backdropFadeIn 0.2s ease-out">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
-      <article class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] flex flex-col" style="animation: panelSlideUp 0.3s ease-out">
+      <article class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col" style="animation: panelSlideUp 0.3s ease-out">
         <button
-          class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/95 backdrop-blur shadow-lg flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
+          class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 backdrop-blur shadow-lg flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
           aria-label="Sluiten"
           @click="close"
         >
-          <X :size="18" />
+          <X :size="16" />
         </button>
 
-        <div v-if="selected.image_url" class="relative h-40 sm:h-56 md:aspect-[16/9] md:h-auto bg-gray-100 overflow-hidden shrink-0">
+        <div v-if="selected.image_url" class="relative h-28 sm:h-36 md:h-44 bg-gray-100 overflow-hidden shrink-0">
           <img :src="selected.image_url" :alt="selected.title" class="absolute inset-0 w-full h-full object-cover" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </div>
 
-        <div class="px-6 sm:px-10 py-6 sm:py-8 overflow-y-auto min-h-0 flex-1 overscroll-contain">
-          <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-5">
-            <span class="bg-roc-50 text-roc-600 font-bold tracking-[0.15em] uppercase px-3 py-1 rounded-full text-[0.65rem]">Artikel</span>
+        <div class="px-5 sm:px-8 py-5 sm:py-6 overflow-y-auto min-h-0 flex-1 overscroll-contain">
+          <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
+            <span class="bg-roc-50 text-roc-600 font-bold tracking-[0.15em] uppercase px-2.5 py-0.5 rounded-full text-[0.6rem]">Artikel</span>
             <span class="flex items-center gap-1.5 font-medium">
-              <Calendar :size="13" /> {{ fmtLong(selected.created_at) }}
+              <Calendar :size="12" /> {{ fmtLong(selected.created_at) }}
             </span>
             <span class="text-gray-300">·</span>
             <span class="flex items-center gap-1.5">
-              <Clock :size="13" /> {{ readTime(selected.content) }} min leestijd
+              <Clock :size="12" /> {{ readTime(selected.content) }} min leestijd
             </span>
           </div>
 
-          <h1 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 leading-[1.15] mb-5">{{ selected.title }}</h1>
+          <h1 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-[1.15] mb-3">{{ selected.title }}</h1>
 
-          <p v-if="selected.excerpt" class="text-lg text-gray-600 leading-relaxed border-l-4 border-roc-500 pl-5 mb-8 italic">
+          <p v-if="selected.excerpt" class="text-base text-gray-600 leading-relaxed border-l-4 border-roc-500 pl-4 mb-5 italic">
             {{ selected.excerpt }}
           </p>
 
-          <div class="prose-article text-gray-700 text-base leading-[1.8] whitespace-pre-line">
+          <div class="prose-article text-gray-700 text-[0.95rem] leading-[1.75] whitespace-pre-line">
             {{ selected.content }}
           </div>
         </div>

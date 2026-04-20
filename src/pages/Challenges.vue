@@ -399,35 +399,35 @@ const resetTilt = (e: MouseEvent) => {
       :style="{ backgroundColor: 'rgba(5,7,12,0.85)', backdropFilter: 'blur(14px)' }"
       @click="detail = null"
     >
-      <div class="relative bg-[#0f1218] border border-white/10 rounded-[1.75rem] md:rounded-[2rem] shadow-2xl w-full max-w-3xl max-h-[calc(100dvh-1.5rem)] md:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col" @click.stop>
-        <div class="relative h-36 sm:h-44 md:h-52 overflow-hidden shrink-0">
+      <div class="relative bg-[#0f1218] border border-white/10 rounded-2xl md:rounded-[1.75rem] shadow-2xl w-full max-w-3xl max-h-[calc(100dvh-1rem)] md:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col" @click.stop>
+        <div class="relative h-28 sm:h-36 md:h-44 overflow-hidden shrink-0">
           <img v-if="detail.image_url" :src="detail.image_url" :alt="detail.title" class="w-full h-full object-cover" />
           <div v-else :class="['w-full h-full bg-gradient-to-br', diffMeta(detail.difficulty).from, 'to-[#0b0d12]', 'flex items-center justify-center']">
             <Swords :size="80" class="text-white/20" />
           </div>
           <div class="absolute inset-0 bg-gradient-to-t from-[#0f1218] via-[#0f1218]/40 to-transparent" />
-          <button aria-label="Sluiten" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur flex items-center justify-center text-white transition-colors" @click="detail = null">
-            <X :size="18" />
+          <button aria-label="Sluiten" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur flex items-center justify-center text-white transition-colors" @click="detail = null">
+            <X :size="16" />
           </button>
-          <div class="absolute inset-x-0 bottom-0 p-6 md:p-8">
-            <div class="flex items-center gap-2 mb-3 flex-wrap">
-              <span :class="['inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.7rem] font-bold uppercase tracking-wider border', diffMeta(detail.difficulty).tag]">
-                <component :is="diffMeta(detail.difficulty).icon" :size="11" />
+          <div class="absolute inset-x-0 bottom-0 p-4 md:p-6">
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
+              <span :class="['inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.65rem] font-bold uppercase tracking-wider border', diffMeta(detail.difficulty).tag]">
+                <component :is="diffMeta(detail.difficulty).icon" :size="10" />
                 {{ diffMeta(detail.difficulty).label }}
               </span>
-              <span v-if="detail.category" class="inline-flex items-center gap-1 text-[0.7rem] font-bold uppercase tracking-wider text-white/70 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+              <span v-if="detail.category" class="inline-flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wider text-white/70 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
                 {{ detail.category }}
               </span>
             </div>
-            <h2 class="text-3xl md:text-4xl font-bold tracking-tight leading-tight">{{ detail.title }}</h2>
-            <p class="text-white/60 text-sm mt-2 flex items-center gap-1.5">
-              <Building2 :size="13" /> {{ detail.company_name }}
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight line-clamp-2">{{ detail.title }}</h2>
+            <p class="text-white/60 text-xs mt-1 flex items-center gap-1.5">
+              <Building2 :size="12" /> {{ detail.company_name }}
             </p>
           </div>
         </div>
 
-        <div class="p-5 md:p-7 overflow-y-auto min-h-0 flex-1 overscroll-contain">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
+        <div class="p-4 md:p-6 overflow-y-auto min-h-0 flex-1 overscroll-contain">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-5">
             <div v-if="detail.deadline" class="rounded-2xl p-3 bg-white/5 border border-white/10">
               <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Calendar :size="11" /> Deadline</div>
               <div class="text-sm font-bold">{{ fmtLong(detail.deadline) }}</div>
@@ -449,15 +449,15 @@ const resetTilt = (e: MouseEvent) => {
             </div>
           </div>
 
-          <h3 class="text-xs font-bold tracking-[0.2em] uppercase text-white/40 mb-2">Briefing</h3>
-          <p class="text-white/80 leading-relaxed whitespace-pre-wrap">{{ detail.description }}</p>
+          <h3 class="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-white/40 mb-2">Briefing</h3>
+          <p class="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{{ detail.description }}</p>
 
           <a
             v-if="detail.contact_email"
             :href="`mailto:${detail.contact_email}?subject=${encodeURIComponent('Quest: ' + detail.title)}`"
-            class="mt-8 inline-flex items-center gap-2 bg-roc-500 hover:bg-roc-400 text-white font-semibold px-6 py-3 rounded-full transition-colors shadow-lg shadow-roc-500/30"
+            class="mt-5 inline-flex items-center gap-2 bg-roc-500 hover:bg-roc-400 text-white font-semibold px-5 py-2.5 rounded-full transition-colors shadow-lg shadow-roc-500/30 text-sm"
           >
-            <Swords :size="16" /> Accepteer quest
+            <Swords :size="15" /> Accepteer quest
           </a>
         </div>
       </div>

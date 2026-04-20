@@ -43,16 +43,9 @@ export function Header() {
             <button
               onClick={() => navigate('home')}
               aria-label="Ga naar homepage"
-              className="flex items-stretch bg-white shadow-sm pointer-events-auto"
+              className="pointer-events-auto block"
             >
-              <div className="flex items-center justify-center px-4 md:px-6 py-3">
-                <img src="/image.png" alt="ROC van Flevoland" className="h-12 md:h-16 w-auto object-contain" />
-              </div>
-              <div className="bg-roc-500 flex items-center px-4 md:px-5 py-3">
-                <span className="text-white text-[11px] md:text-sm font-bold leading-tight text-left">
-                  maakt<br />werk van<br />je talent
-                </span>
-              </div>
+              <img src="/image.png" alt="ROC van Flevoland" className="h-20 md:h-24 w-auto object-contain" />
             </button>
           </div>
         </div>

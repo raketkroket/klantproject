@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-roc-50: #fff3ee;
+  --color-roc-100: #ffe4d5;
+  --color-roc-200: #ffc5a8;
+  --color-roc-300: #ff9d71;
+  --color-roc-400: #ff7038;
+  --color-roc-500: #e84a10;
+  --color-roc-600: #d03a08;
+  --color-roc-700: #b02c06;
+  --color-roc-800: #8e220a;
+  --color-roc-900: #751d0c;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #fff;
+  color: #1a1a1a;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panelSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.page-enter {
+  animation: pageFadeIn 0.35s ease both;
+}
+
+.login-backdrop {
+  animation: backdropFadeIn 0.2s ease both;
+}
+
+.login-panel {
+  animation: panelSlideUp 0.3s ease both;
+}
+
+[data-animate] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+[data-animate].in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-animate-delay="100"] { transition-delay: 0.1s; }
+[data-animate-delay="200"] { transition-delay: 0.2s; }
+[data-animate-delay="300"] { transition-delay: 0.3s; }
+[data-animate-delay="400"] { transition-delay: 0.4s; }
+[data-animate-delay="500"] { transition-delay: 0.5s; }
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

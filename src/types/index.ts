@@ -10,6 +10,7 @@ export interface Project {
   github_url: string;
   demo_url: string;
   image_url: string;
+  media_type: 'image' | 'video';
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }

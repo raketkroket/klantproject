@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import {
-  Code as Code2, Plus, ExternalLink, GitBranch, Search,
-  Upload, X, Image as ImageIcon, Film, CheckCircle2, AlertCircle,
-} from 'lucide-vue-next'
+import { Code as Code2, Plus, ExternalLink, GitBranch, Search, Upload, X, Image as ImageIcon, Film, CircleCheck as CheckCircle2, CircleAlert as AlertCircle } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import type { Project } from '../types'
 import { useScrollAnimation } from '../composables/useScrollAnimation'

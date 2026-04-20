@@ -395,12 +395,12 @@ const resetTilt = (e: MouseEvent) => {
 
     <div
       v-if="detail"
-      class="fixed inset-0 z-[150] flex items-start md:items-center justify-center p-3 md:p-4 animate-fadein"
+      class="fixed inset-0 z-[150] flex items-center justify-center p-3 md:p-4 animate-fadein"
       :style="{ backgroundColor: 'rgba(5,7,12,0.85)', backdropFilter: 'blur(14px)' }"
       @click="detail = null"
     >
-      <div class="relative bg-[#0f1218] border border-white/10 rounded-[2rem] shadow-2xl w-full max-w-3xl h-[min(88svh,46rem)] overflow-hidden flex flex-col" @click.stop>
-        <div class="relative h-44 md:h-56 overflow-hidden shrink-0">
+      <div class="relative bg-[#0f1218] border border-white/10 rounded-[1.75rem] md:rounded-[2rem] shadow-2xl w-full max-w-3xl max-h-[calc(100dvh-1.5rem)] md:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col" @click.stop>
+        <div class="relative h-36 sm:h-44 md:h-52 overflow-hidden shrink-0">
           <img v-if="detail.image_url" :src="detail.image_url" :alt="detail.title" class="w-full h-full object-cover" />
           <div v-else :class="['w-full h-full bg-gradient-to-br', diffMeta(detail.difficulty).from, 'to-[#0b0d12]', 'flex items-center justify-center']">
             <Swords :size="80" class="text-white/20" />
@@ -426,7 +426,7 @@ const resetTilt = (e: MouseEvent) => {
           </div>
         </div>
 
-        <div class="p-6 md:p-7 overflow-y-auto min-h-0 flex-1">
+        <div class="p-5 md:p-7 overflow-y-auto min-h-0 flex-1 overscroll-contain">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
             <div v-if="detail.deadline" class="rounded-2xl p-3 bg-white/5 border border-white/10">
               <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Calendar :size="11" /> Deadline</div>
@@ -469,7 +469,7 @@ const resetTilt = (e: MouseEvent) => {
       :style="{ backgroundColor: 'rgba(5,7,12,0.85)', backdropFilter: 'blur(10px)' }"
       @click="showForm = false"
     >
-      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto" @click.stop>
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain" @click.stop>
         <div class="sticky top-0 bg-white border-b border-gray-100 px-7 py-5 flex items-center justify-between rounded-t-3xl">
           <div>
             <h2 class="text-xl font-bold text-gray-900">Plaats een quest</h2>

@@ -28,7 +28,7 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="emit('close')" />
-    <div :class="['relative w-full bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto', sizeClasses[size ?? 'lg']]">
+    <div :class="['relative w-full bg-white rounded-2xl shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain', sizeClasses[size ?? 'lg']]">
       <div class="flex items-center justify-between p-6 border-b border-gray-100">
         <h2 class="text-xl font-semibold text-gray-900">{{ title }}</h2>
         <button class="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" @click="emit('close')">

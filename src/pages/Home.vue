@@ -3,9 +3,27 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Pause, Play, ArrowRight, Code as Code2, Briefcase, GraduationCap, Rocket } from 'lucide-vue-next'
 import { useScrollAnimation } from '../composables/useScrollAnimation'
+import { supabase } from '../lib/supabase'
+import type { Project } from '../types'
 
 const router = useRouter()
 useScrollAnimation()
+
+const recentProjects = ref<Project[]>([])
+const loadingProjects = ref(true)
+
+const fetchRecent = async () => {
+  const { data } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(3)
+  recentProjects.value = data ?? []
+  loadingProjects.value = false
+}
+
+let projectsChannel: ReturnType<typeof supabase.channel> | null = null
 
 const heroSlides = [
   {
@@ -65,8 +83,20 @@ const start = () => {
 }
 
 watch(paused, start)
-onMounted(start)
-onBeforeUnmount(clear)
+onMounted(() => {
+  start()
+  fetchRecent()
+  projectsChannel = supabase
+    .channel('home-recent-projects')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchRecent)
+    .subscribe()
+})
+onBeforeUnmount(() => {
+  clear()
+  if (projectsChannel) supabase.removeChannel(projectsChannel)
+})
+
+const openProjecten = () => router.push({ name: 'projecten' })
 
 const go = (name: string) => router.push({ name })
 const goTo = (i: number) => { activeSlide.value = i }
@@ -184,25 +214,75 @@ const goTo = (i: number) => { activeSlide.value = i }
           <h2 class="text-3xl font-bold text-gray-900">Recente projecten</h2>
         </div>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-if="loadingProjects" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
-            v-for="i in 3" :key="i"
-            class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
-            data-animate
-            :data-animate-delay="`${i * 100}`"
+            v-for="i in 3" :key="`skeleton-${i}`"
+            class="bg-white border border-gray-100 rounded-2xl overflow-hidden animate-pulse"
           >
-            <div class="h-44 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-              <Code2 :size="32" class="text-gray-300" />
-            </div>
-            <div class="p-5">
-              <div class="flex items-center gap-2 mb-3">
-                <span class="text-xs font-semibold bg-roc-50 text-roc-600 px-2.5 py-1 rounded-full">React</span>
-                <span class="text-xs font-semibold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full">TypeScript</span>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">Voorbeeldproject #{{ i }}</h3>
-              <p class="text-sm text-gray-500 leading-relaxed">Een voorbeeld van wat studenten bouwen op het Software Talent Hub platform.</p>
+            <div class="h-44 bg-gray-100" />
+            <div class="p-5 space-y-3">
+              <div class="h-3 w-24 bg-gray-100 rounded-full" />
+              <div class="h-4 w-3/4 bg-gray-100 rounded" />
+              <div class="h-3 w-full bg-gray-100 rounded" />
             </div>
           </div>
+        </div>
+
+        <div
+          v-else-if="recentProjects.length === 0"
+          class="max-w-xl mx-auto text-center border border-dashed border-gray-200 rounded-2xl p-10"
+          data-animate
+        >
+          <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-gray-100 flex items-center justify-center">
+            <Code2 :size="22" class="text-gray-400" />
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-1">Nog geen projecten</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            Zodra studenten hun eerste projecten uploaden verschijnen ze hier automatisch.
+          </p>
+        </div>
+
+        <div v-else class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <button
+            v-for="(p, i) in recentProjects" :key="p.id"
+            class="text-left bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer"
+            data-animate
+            :data-animate-delay="`${(i + 1) * 100}`"
+            @click="openProjecten"
+          >
+            <div class="h-44 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+              <video
+                v-if="p.image_url && p.media_type === 'video'"
+                :src="p.image_url"
+                muted loop playsinline
+                class="w-full h-full object-cover"
+              />
+              <img
+                v-else-if="p.image_url"
+                :src="p.image_url"
+                :alt="p.title"
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <Code2 :size="32" class="text-gray-300" />
+              </div>
+            </div>
+            <div class="p-5">
+              <div v-if="p.tech_stack?.length" class="flex flex-wrap items-center gap-2 mb-3">
+                <span
+                  v-for="(t, ti) in p.tech_stack.slice(0, 3)" :key="t"
+                  :class="[
+                    'text-xs font-semibold px-2.5 py-1 rounded-full',
+                    ti === 0 ? 'bg-roc-50 text-roc-600' : ti === 1 ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
+                  ]"
+                >{{ t }}</span>
+              </div>
+              <h3 class="font-bold text-gray-900 mb-2 line-clamp-1">{{ p.title }}</h3>
+              <p class="text-sm text-gray-500 leading-relaxed line-clamp-2">{{ p.description }}</p>
+              <p v-if="p.author_name" class="text-xs text-gray-400 mt-3">door {{ p.author_name }}</p>
+            </div>
+          </button>
         </div>
 
         <div class="text-center mt-10" data-animate data-animate-delay="300">

@@ -225,7 +225,7 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
     <div v-if="selected" class="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4" style="animation: backdropFadeIn 0.2s ease-out">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
       <article
-        class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col"
+        class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden h-[min(640px,calc(100dvh-2rem))] sm:h-[min(680px,calc(100dvh-3rem))] flex flex-col"
         style="animation: panelSlideUp 0.3s ease-out"
       >
         <button

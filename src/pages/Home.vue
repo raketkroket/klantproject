@@ -28,7 +28,20 @@ const heroSlides = [
   },
 ]
 
-const partnerLogos = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Partner ${i + 1}`, logo: null as string | null }))
+const partnerLogos = [
+  { id: 1, name: 'Archimedict', logo: '/partnerimages/archimedict.png' },
+  { id: 2, name: 'Daylinq', logo: '/partnerimages/daylinq_logo.jpg' },
+  { id: 3, name: 'FlevoDevs', logo: '/partnerimages/flevodevs_logo.jpg' },
+  { id: 4, name: 'GreyGames', logo: '/partnerimages/greygames_logo.jpg' },
+  { id: 5, name: 'IDCP BV', logo: '/partnerimages/idcp_bv_logo.jpg' },
+  { id: 6, name: 'Mobiel Centre Marktonderzoek', logo: '/partnerimages/mobiel_centre_marktonderzoek_b_v__logo.jpg' },
+  { id: 7, name: 'Raion Design', logo: '/partnerimages/raion_design_logo.jpg' },
+  { id: 8, name: 'Wur Bio Veterinary', logo: '/partnerimages/wurbioveterinary_logo.jpg' },
+  { id: 9, name: 'Partner 1', logo: '/partnerimages/1631310391030.jpg' },
+  { id: 10, name: 'Partner 2', logo: '/partnerimages/1684497600651.jpg' },
+  { id: 11, name: 'Partner 3', logo: '/partnerimages/286984754_115513597846209_2920194728808591723_n.jpg' },
+  { id: 12, name: 'Partner 4', logo: '/partnerimages/Screenshot%202026-04-20%20173856.png' },
+] as const
 const partnersDouble = [...partnerLogos, ...partnerLogos]
 
 const features = [

@@ -23,6 +23,9 @@ export interface Challenge {
   deadline: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   prize: string;
+  image_url: string;
+  category: string;
+  duration: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }

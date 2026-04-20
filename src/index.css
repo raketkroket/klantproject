@@ -93,3 +93,22 @@ body {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-roc-500);
+  background: #fff;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { scrollbar-width: none; }

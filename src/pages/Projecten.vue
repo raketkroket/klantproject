@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
   Code as Code2, Plus, ExternalLink, GitBranch, Search, Upload, X,
   Image as ImageIcon, Film, CircleCheck as CheckCircle2, CircleAlert as AlertCircle,
-  ArrowRight, ArrowUpRight, Sparkles, Play, Users, Rocket, Flame,
+  ArrowUpRight, Sparkles, Play, Users, Rocket,
   ChevronRight, Clock, Zap, LayoutGrid, Filter
 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
@@ -188,10 +188,6 @@ const stats = computed(() => ({
   fresh: projects.value.filter((p) => isNew(p.created_at)).length,
 }))
 
-const marqueeItems = computed(() => {
-  const base = projects.value.slice(0, 10).map((p) => p.title)
-  return base.length ? [...base, ...base] : ['Studenten bouwen de toekomst', 'Nieuwe drops elke week', 'Ingezonden door ROC van Flevoland', 'Software Talent Hub']
-})
 </script>
 
 <template>
@@ -269,16 +265,6 @@ const marqueeItems = computed(() => {
               Project indienen
             </button>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="relative bg-gray-900 text-white overflow-hidden">
-      <div class="flex gap-12 py-4 whitespace-nowrap marquee">
-        <div v-for="(item, i) in marqueeItems" :key="i" class="inline-flex items-center gap-4 shrink-0 text-sm font-semibold tracking-wide">
-          <Flame :size="14" class="text-roc-400" />
-          <span>{{ item }}</span>
-          <span class="text-white/20">·</span>
         </div>
       </div>
     </section>
@@ -716,14 +702,6 @@ const marqueeItems = computed(() => {
 </template>
 
 <style scoped>
-.marquee {
-  animation: marquee 40s linear infinite;
-  will-change: transform;
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .animate-fadein { animation: fadein 0.25s ease-out; }

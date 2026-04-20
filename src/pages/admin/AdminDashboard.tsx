@@ -199,16 +199,16 @@ export default function AdminDashboard() {
 
       {/* Tab bar */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
             {tabs.map(({ id, label, icon: Icon, count }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-3.5 text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   tab === id
                     ? 'border-roc-500 text-roc-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-200'
+                    : 'border-transparent text-gray-400 hover:text-gray-900 hover:border-gray-200'
                 }`}
               >
                 <Icon size={15} />
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 size={32} className="text-roc-500 animate-spin" />
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
                   <p className="text-gray-400 text-sm">Ingelogd als {user.email}</p>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {[
                     { label: 'Projecten te beoordelen', value: pendingProjects.length, icon: FolderGit2, color: 'text-amber-500', bg: 'bg-amber-50', tab: 'projects' as Tab },
                     { label: 'Challenges te beoordelen', value: pendingChallenges.length, icon: Zap, color: 'text-roc-500', bg: 'bg-roc-50', tab: 'challenges' as Tab },

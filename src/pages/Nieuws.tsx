@@ -35,22 +35,21 @@ export function Nieuws() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="relative w-full" style={{ height: '420px' }}>
+      <div className="relative w-full h-52 sm:h-64 md:h-72">
         <img
           src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=1600"
           alt="Nieuws"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-black/25" />
-        <div className="absolute bottom-0 left-8 md:left-16 translate-y-1/2 z-10">
-          <div className="bg-roc-500 rounded-2xl px-8 py-7 max-w-xs shadow-xl">
-            <h1 className="text-3xl font-bold text-white mb-1">Nieuws</h1>
-            <p className="text-white/80 text-sm">Laatste updates van het platform</p>
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute bottom-6 left-5 sm:left-10 md:left-14">
+          <span className="text-xs font-bold tracking-widest text-roc-300 uppercase block mb-1">Actueel</span>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white">Nieuws</h1>
+          <p className="text-white/70 text-sm mt-1">Laatste updates van het platform</p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pt-28 pb-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-10">
         {loading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1,2,3].map((i) => <div key={i} className="bg-gray-100 rounded-2xl h-64 animate-pulse" />)}

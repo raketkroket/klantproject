@@ -25,24 +25,22 @@ export function Contact() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="relative w-full" style={{ height: '420px' }}>
+      <div className="relative w-full h-52 sm:h-64 md:h-72">
         <img
           src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1600"
           alt="Contact"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-black/20" />
-
-        <div className="absolute bottom-0 left-8 md:left-16 translate-y-1/2 z-10">
-          <div className="bg-roc-500 rounded-2xl px-8 py-7 max-w-xs shadow-xl">
-            <h1 className="text-3xl font-bold text-white mb-1">Contact</h1>
-            <p className="text-white/80 text-sm">Welkom bij het Informatiecentrum</p>
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute bottom-6 left-5 sm:left-10 md:left-14">
+          <span className="text-xs font-bold tracking-widest text-roc-300 uppercase block mb-1">Informatiecentrum</span>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white">Contact</h1>
+          <p className="text-white/70 text-sm mt-1">Welkom bij het Informatiecentrum</p>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-8 md:px-16 pt-28 pb-16">
-        <div className="grid md:grid-cols-2 gap-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 md:px-16 pt-8 pb-16">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-snug">
               Heb je vragen over onze opleidingen of hulp nodig bij je aanmelding? Bij het Informatiecentrum helpen we je verder!

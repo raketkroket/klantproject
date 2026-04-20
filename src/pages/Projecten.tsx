@@ -70,22 +70,21 @@ export function Projecten() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="relative w-full" style={{ height: '420px' }}>
+      <div className="relative w-full h-52 sm:h-64 md:h-72">
         <img
           src="https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=1600"
           alt="Projecten"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-black/25" />
-        <div className="absolute bottom-0 left-8 md:left-16 translate-y-1/2 z-10">
-          <div className="bg-roc-500 rounded-2xl px-8 py-7 max-w-xs shadow-xl">
-            <h1 className="text-3xl font-bold text-white mb-1">Projecten</h1>
-            <p className="text-white/80 text-sm">Ontdek studentprojecten van ROC van Flevoland</p>
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute bottom-6 left-5 sm:left-10 md:left-14">
+          <span className="text-xs font-bold tracking-widest text-roc-300 uppercase block mb-1">Software Talent Hub</span>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white">Projecten</h1>
+          <p className="text-white/70 text-sm mt-1">Ontdek studentprojecten van ROC van Flevoland</p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pt-28 pb-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-10">
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
           <div className="flex-1 relative">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />

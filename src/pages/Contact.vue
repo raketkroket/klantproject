@@ -88,26 +88,79 @@ const handleSubmit = async (e: Event) => {
 
 <template>
   <div class="min-h-screen bg-white">
-    <div class="relative w-full h-72 sm:h-80 md:h-[22rem] overflow-hidden">
-      <img
-        src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1600"
-        alt="Contact"
-        class="absolute inset-0 w-full h-full object-cover object-center"
-      />
-      <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
-      <div class="absolute inset-0 flex items-end">
-        <div class="max-w-[1300px] mx-auto px-6 md:px-10 w-full pb-10 md:pb-14">
-          <div class="flex items-center gap-2 text-xs text-white/70 mb-4">
-            <span>Home</span>
-            <ChevronRight :size="12" />
-            <span class="text-white">Contact</span>
+    <div class="relative pt-32 md:pt-36 pb-10 md:pb-14 bg-gradient-to-b from-stone-50 to-white overflow-hidden">
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute -top-24 -right-24 w-[28rem] h-[28rem] rounded-full bg-roc-100/70 blur-3xl" />
+        <div class="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-amber-100/50 blur-3xl" />
+      </div>
+
+      <div class="relative max-w-[1300px] mx-auto px-6 md:px-10">
+        <div class="flex items-center gap-2 text-xs text-gray-400 mb-6">
+          <span class="hover:text-gray-600 cursor-pointer transition-colors">Home</span>
+          <ChevronRight :size="12" />
+          <span class="text-roc-500 font-semibold">Contact</span>
+        </div>
+
+        <div class="grid md:grid-cols-12 gap-10 md:gap-16 items-center">
+          <div class="md:col-span-7">
+            <span class="inline-flex items-center gap-2 bg-white border border-roc-100 text-roc-600 rounded-full pl-2 pr-4 py-1.5 text-xs font-bold tracking-wider uppercase shadow-sm mb-6">
+              <span class="w-5 h-5 rounded-full bg-roc-500 flex items-center justify-center text-white">
+                <MessageSquare :size="10" />
+              </span>
+              Informatiecentrum
+            </span>
+            <h1 class="text-4xl sm:text-5xl md:text-[3.75rem] font-bold text-gray-900 tracking-tight leading-[1.05] mb-6">
+              Welkom bij het <span class="relative inline-block">
+                <span class="relative z-10 text-roc-500">Informatie&shy;centrum</span>
+                <span class="absolute left-0 right-0 bottom-1 h-3 bg-roc-100/80 -z-0"></span>
+              </span>
+            </h1>
+            <p class="text-lg text-gray-600 leading-relaxed max-w-2xl">
+              Wij zijn jouw eerste aanspreekpunt voor vragen over opleidingen, aanmelden of studiekeuze. Bel, mail of app — we helpen je graag verder.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3 mt-8">
+              <a href="tel:09000918" class="inline-flex items-center gap-2 bg-roc-500 hover:bg-roc-600 text-white font-semibold px-6 py-3 rounded-full text-sm shadow-lg shadow-roc-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                <Phone :size="15" /> 0900 - 0918
+              </a>
+              <a href="mailto:informatiecentrum@rocvf.nl" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 font-semibold px-6 py-3 rounded-full text-sm border border-gray-200 hover:border-gray-900 transition-all">
+                <Mail :size="15" /> Stuur een mail
+              </a>
+            </div>
           </div>
-          <span class="inline-flex items-center gap-2 text-xs font-bold tracking-[0.25em] text-roc-300 uppercase mb-3">
-            <span class="h-px w-8 bg-roc-300" /> Informatiecentrum
-          </span>
-          <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight leading-tight max-w-3xl">
-            Welkom bij het<br />Informatiecentrum
-          </h1>
+
+          <div class="md:col-span-5 relative">
+            <div class="relative aspect-[4/5] max-w-sm mx-auto md:ml-auto md:mr-0">
+              <div class="absolute -inset-4 bg-gradient-to-br from-roc-200/60 to-amber-100/40 rounded-[2.5rem] rotate-3" />
+              <div class="absolute -inset-2 bg-white rounded-[2rem] -rotate-2 shadow-xl" />
+              <div class="relative rounded-3xl overflow-hidden shadow-2xl h-full">
+                <img
+                  src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=900"
+                  alt="Informatiecentrum medewerkers"
+                  class="w-full h-full object-cover"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              </div>
+              <div class="absolute -left-4 bottom-6 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3 max-w-[15rem]">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <CheckCircle :size="18" />
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-gray-900">Online</p>
+                  <p class="text-[0.7rem] text-gray-500">Reactie binnen 2 werkdagen</p>
+                </div>
+              </div>
+              <div class="absolute -right-2 top-8 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-roc-500 flex items-center justify-center text-white">
+                  <Phone :size="14" />
+                </div>
+                <div class="pr-2">
+                  <p class="text-[0.65rem] font-bold tracking-wider uppercase text-gray-400">Ma–vr</p>
+                  <p class="text-xs font-bold text-gray-900">08:30 – 17:00</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

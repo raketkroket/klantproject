@@ -222,9 +222,9 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
       </template>
     </div>
 
-    <div v-if="selected" class="fixed inset-0 z-50 flex items-start justify-center p-0 sm:p-6 overflow-y-auto" style="animation: backdropFadeIn 0.2s ease-out">
+    <div v-if="selected" class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-6" style="animation: backdropFadeIn 0.2s ease-out">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
-      <article class="relative w-full max-w-3xl bg-white sm:rounded-2xl shadow-2xl overflow-hidden my-0 sm:my-8" style="animation: panelSlideUp 0.3s ease-out">
+      <article class="relative w-full max-w-3xl bg-white sm:rounded-2xl shadow-2xl overflow-hidden h-[min(90svh,48rem)] flex flex-col" style="animation: panelSlideUp 0.3s ease-out">
         <button
           class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/95 backdrop-blur shadow-lg flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
           aria-label="Sluiten"
@@ -233,12 +233,12 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
           <X :size="18" />
         </button>
 
-        <div v-if="selected.image_url" class="relative aspect-[16/9] bg-gray-100 overflow-hidden">
+        <div v-if="selected.image_url" class="relative aspect-[16/9] bg-gray-100 overflow-hidden shrink-0">
           <img :src="selected.image_url" :alt="selected.title" class="absolute inset-0 w-full h-full object-cover" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </div>
 
-        <div class="px-6 sm:px-10 py-8 sm:py-10">
+        <div class="px-6 sm:px-10 py-8 sm:py-10 overflow-y-auto min-h-0 flex-1">
           <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-5">
             <span class="bg-roc-50 text-roc-600 font-bold tracking-[0.15em] uppercase px-3 py-1 rounded-full text-[0.65rem]">Artikel</span>
             <span class="flex items-center gap-1.5 font-medium">

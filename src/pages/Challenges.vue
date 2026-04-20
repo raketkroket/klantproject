@@ -395,12 +395,12 @@ const resetTilt = (e: MouseEvent) => {
 
     <div
       v-if="detail"
-      class="fixed inset-0 z-[150] flex items-center justify-center p-4 animate-fadein"
+      class="fixed inset-0 z-[150] flex items-start md:items-center justify-center p-3 md:p-4 animate-fadein"
       :style="{ backgroundColor: 'rgba(5,7,12,0.85)', backdropFilter: 'blur(14px)' }"
       @click="detail = null"
     >
-      <div class="relative bg-[#0f1218] border border-white/10 rounded-[2rem] shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden" @click.stop>
-        <div class="relative h-60 md:h-72 overflow-hidden">
+      <div class="relative bg-[#0f1218] border border-white/10 rounded-[2rem] shadow-2xl w-full max-w-3xl h-[min(88svh,46rem)] overflow-hidden flex flex-col" @click.stop>
+        <div class="relative h-44 md:h-56 overflow-hidden shrink-0">
           <img v-if="detail.image_url" :src="detail.image_url" :alt="detail.title" class="w-full h-full object-cover" />
           <div v-else :class="['w-full h-full bg-gradient-to-br', diffMeta(detail.difficulty).from, 'to-[#0b0d12]', 'flex items-center justify-center']">
             <Swords :size="80" class="text-white/20" />
@@ -426,7 +426,7 @@ const resetTilt = (e: MouseEvent) => {
           </div>
         </div>
 
-        <div class="p-6 md:p-8 overflow-y-auto max-h-[calc(92vh-18rem)]">
+        <div class="p-6 md:p-7 overflow-y-auto min-h-0 flex-1">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
             <div v-if="detail.deadline" class="rounded-2xl p-3 bg-white/5 border border-white/10">
               <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Calendar :size="11" /> Deadline</div>

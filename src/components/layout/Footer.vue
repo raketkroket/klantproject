@@ -96,5 +96,13 @@ const year = new Date().getFullYear()
         </div>
       </div>
     </div>
+
+    <div class="bg-gray-900 text-gray-100 border-t border-black/20">
+      <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-center">
+        <p class="text-xs font-semibold tracking-[0.25em] uppercase">
+          Made by <span class="text-roc-400">CHAS</span>
+        </p>
+      </div>
+    </div>
   </footer>
 </template>

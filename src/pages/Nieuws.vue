@@ -238,12 +238,12 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
 
         <div
           v-if="selected.image_url"
-          class="relative bg-gray-100 shrink-0 flex items-center justify-center max-h-[38vh] md:max-h-[40vh]"
+          class="relative w-full aspect-[16/9] bg-gray-100 shrink-0 overflow-hidden"
         >
           <img
             :src="selected.image_url"
             :alt="selected.title"
-            class="max-h-[38vh] md:max-h-[40vh] w-auto max-w-full object-contain"
+            class="absolute inset-0 w-full h-full object-cover"
           />
         </div>
 

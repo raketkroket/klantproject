@@ -225,7 +225,7 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
     <div v-if="selected" class="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4" style="animation: backdropFadeIn 0.2s ease-out">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
       <article
-        class="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col md:flex-row"
+        class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col"
         style="animation: panelSlideUp 0.3s ease-out"
       >
         <button
@@ -238,10 +238,13 @@ const close = () => { selected.value = null; document.body.style.overflow = '' }
 
         <div
           v-if="selected.image_url"
-          class="relative h-28 sm:h-36 md:h-auto md:w-2/5 md:shrink-0 bg-gray-100 overflow-hidden"
+          class="relative bg-gray-100 shrink-0 flex items-center justify-center max-h-[38vh] md:max-h-[40vh]"
         >
-          <img :src="selected.image_url" :alt="selected.title" class="absolute inset-0 w-full h-full object-cover" />
-          <div class="absolute inset-0 md:bg-gradient-to-r md:from-transparent md:to-white/10 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <img
+            :src="selected.image_url"
+            :alt="selected.title"
+            class="max-h-[38vh] md:max-h-[40vh] w-auto max-w-full object-contain"
+          />
         </div>
 
         <div class="px-5 sm:px-7 py-5 sm:py-6 overflow-y-auto min-h-0 flex-1 overscroll-contain">

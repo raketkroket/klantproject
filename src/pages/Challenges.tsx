@@ -71,10 +71,12 @@ export function Challenges() {
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="absolute bottom-6 left-5 sm:left-10 md:left-14">
-          <span className="text-xs font-bold tracking-widest text-roc-300 uppercase block mb-1">Voor studenten</span>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white">Challenges</h1>
-          <p className="text-white/70 text-sm mt-1">Pak een uitdaging op van een bedrijf</p>
+        <div className="absolute inset-x-0 bottom-6">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <span className="text-xs font-bold tracking-widest text-roc-300 uppercase block mb-1">Voor studenten</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white">Challenges</h1>
+            <p className="text-white/70 text-sm mt-1">Pak een uitdaging op van een bedrijf</p>
+          </div>
         </div>
       </div>
 

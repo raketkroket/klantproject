@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from './components/layout/Header.vue'
 import Footer from './components/layout/Footer.vue'
+import { isSupabaseConfigured } from './lib/supabase'
 
 const route = useRoute()
 const isAdminPage = computed(
@@ -12,6 +13,9 @@ const isAdminPage = computed(
 
 <template>
   <div class="min-h-screen flex flex-col">
+    <div v-if="!isSupabaseConfigured" class="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm px-4 py-3 text-center">
+      Supabase is niet geconfigureerd. Voeg VITE_SUPABASE_URL en VITE_SUPABASE_ANON_KEY toe aan .env.local.
+    </div>
     <Header v-if="!isAdminPage" />
     <main class="flex-1">
       <router-view v-slot="{ Component, route: r }">

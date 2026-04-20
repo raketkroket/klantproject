@@ -10,6 +10,19 @@ export function Nieuws() {
   useScrollAnimation();
 
   useEffect(() => {
+    fetchNews();
+
+    const channel = supabase
+      .channel('news-public')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, () => {
+        fetchNews();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const fetchNews = () => {
     supabase
       .from('news')
       .select('*')
@@ -18,7 +31,7 @@ export function Nieuws() {
         setNews(data ?? []);
         setLoading(false);
       });
-  }, []);
+  };
 
   return (
     <div className="min-h-screen bg-white">

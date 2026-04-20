@@ -7,16 +7,17 @@ import { Projecten } from './pages/Projecten';
 import { Challenges } from './pages/Challenges';
 import { Nieuws } from './pages/Nieuws';
 import { Contact } from './pages/Contact';
-import { AdminDashboard } from './pages/AdminDashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLogin from './pages/admin/AdminLogin';
 
 function PageRouter() {
   const { currentPage, transitionKey } = useNavigation();
 
-  const isAdmin = currentPage === 'admin-dashboard';
+  const isAdminPage = currentPage === 'admin-dashboard' || currentPage === 'admin-login';
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdmin && <Header />}
+      {!isAdminPage && <Header />}
       <main className="flex-1">
         <div key={transitionKey} className="page-enter">
           {currentPage === 'home' && <Home />}
@@ -25,9 +26,10 @@ function PageRouter() {
           {currentPage === 'nieuws' && <Nieuws />}
           {currentPage === 'contact' && <Contact />}
           {currentPage === 'admin-dashboard' && <AdminDashboard />}
+          {currentPage === 'admin-login' && <AdminLogin />}
         </div>
       </main>
-      {!isAdmin && <Footer />}
+      {!isAdminPage && <Footer />}
     </div>
   );
 }

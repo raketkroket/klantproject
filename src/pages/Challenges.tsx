@@ -30,6 +30,15 @@ export function Challenges() {
 
   useEffect(() => {
     fetchChallenges();
+
+    const channel = supabase
+      .channel('challenges-public')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, () => {
+        fetchChallenges();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const fetchChallenges = async () => {

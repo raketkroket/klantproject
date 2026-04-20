@@ -83,10 +83,10 @@ export function Home() {
         ))}
 
         <div className="relative z-10 flex flex-col min-h-[inherit]" style={{ minHeight: 'min(100svh, 85.2rem)' }}>
-          <div className="mt-auto">
+          <div className="mt-auto max-w-6xl mx-auto w-full px-6 pb-10">
             <div
-              className="bg-roc-500 text-white rounded-r-2xl overflow-hidden"
-              style={{ width: 'clamp(280px, 48.5rem, calc(100vw - 1.6rem))', maxWidth: '100%' }}
+              className="bg-roc-500 text-white rounded-2xl overflow-hidden"
+              style={{ width: 'clamp(280px, 42rem, 100%)' }}
             >
               <div className="px-6 pt-5 pb-4">
                 <div className="flex items-center justify-between mb-4">

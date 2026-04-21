@@ -36,6 +36,27 @@ const newsModalOpen = ref(false)
 const newsForm = ref({ title: '', content: '', excerpt: '', image_url: '' })
 const newsSubmitting = ref(false)
 const newsError = ref<string | null>(null)
+const newsEditModalOpen = ref(false)
+const newsEditSubmitting = ref(false)
+const newsEditError = ref<string | null>(null)
+const editingNewsId = ref<string | null>(null)
+const newsEditForm = ref({ title: '', content: '', excerpt: '', image_url: '' })
+const projectEditModalOpen = ref(false)
+const projectEditSubmitting = ref(false)
+const projectEditError = ref<string | null>(null)
+const editingProjectId = ref<string | null>(null)
+const projectForm = ref({
+  title: '',
+  description: '',
+  author_name: '',
+  author_email: '',
+  tech_stack_text: '',
+  github_url: '',
+  demo_url: '',
+  image_url: '',
+  media_type: 'image' as Project['media_type'],
+  status: 'pending' as Project['status'],
+})
 const challengeEditModalOpen = ref(false)
 const challengeEditSubmitting = ref(false)
 const challengeEditError = ref<string | null>(null)
@@ -123,6 +144,135 @@ const deleteProject = async (id: string) => {
 const deleteChallenge = async (id: string) => {
   await supabase.from('challenges').delete().eq('id', id)
   challenges.value = challenges.value.filter((c) => c.id !== id)
+}
+
+const openProjectEditor = (project: Project) => {
+  editingProjectId.value = project.id
+  projectEditError.value = null
+  projectForm.value = {
+    title: project.title ?? '',
+    description: project.description ?? '',
+    author_name: project.author_name ?? '',
+    author_email: project.author_email ?? '',
+    tech_stack_text: (project.tech_stack ?? []).join(', '),
+    github_url: project.github_url ?? '',
+    demo_url: project.demo_url ?? '',
+    image_url: project.image_url ?? '',
+    media_type: project.media_type ?? 'image',
+    status: project.status ?? 'pending',
+  }
+  projectEditModalOpen.value = true
+}
+
+const closeProjectModal = () => {
+  projectEditModalOpen.value = false
+  projectEditSubmitting.value = false
+  projectEditError.value = null
+  editingProjectId.value = null
+}
+
+const submitProjectEdit = async (e: Event) => {
+  e.preventDefault()
+  if (!editingProjectId.value) return
+  if (!projectForm.value.title.trim() || !projectForm.value.description.trim() || !projectForm.value.author_name.trim()) {
+    projectEditError.value = 'Titel, beschrijving en auteur zijn verplicht.'
+    return
+  }
+
+  projectEditSubmitting.value = true
+  projectEditError.value = null
+
+  const payload = {
+    title: projectForm.value.title.trim(),
+    description: projectForm.value.description.trim(),
+    author_name: projectForm.value.author_name.trim(),
+    author_email: projectForm.value.author_email.trim(),
+    tech_stack: projectForm.value.tech_stack_text
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean),
+    github_url: projectForm.value.github_url.trim(),
+    demo_url: projectForm.value.demo_url.trim(),
+    image_url: projectForm.value.image_url.trim(),
+    media_type: projectForm.value.media_type,
+    status: projectForm.value.status,
+  }
+
+  const { data, error } = await supabase
+    .from('projects')
+    .update(payload)
+    .eq('id', editingProjectId.value)
+    .select()
+    .single()
+
+  projectEditSubmitting.value = false
+
+  if (error) {
+    projectEditError.value = 'Project opslaan mislukt. Probeer opnieuw.'
+    return
+  }
+
+  if (data) {
+    projects.value = projects.value.map((p) => (p.id === editingProjectId.value ? (data as Project) : p))
+  }
+  closeProjectModal()
+}
+
+const openNewsEditor = (item: NewsItem) => {
+  editingNewsId.value = item.id
+  newsEditError.value = null
+  newsEditForm.value = {
+    title: item.title ?? '',
+    content: item.content ?? '',
+    excerpt: item.excerpt ?? '',
+    image_url: item.image_url ?? '',
+  }
+  newsEditModalOpen.value = true
+}
+
+const closeNewsEditModal = () => {
+  newsEditModalOpen.value = false
+  newsEditSubmitting.value = false
+  newsEditError.value = null
+  editingNewsId.value = null
+}
+
+const submitNewsEdit = async (e: Event) => {
+  e.preventDefault()
+  if (!editingNewsId.value) return
+  if (!newsEditForm.value.title.trim() || !newsEditForm.value.content.trim()) {
+    newsEditError.value = 'Titel en inhoud zijn verplicht.'
+    return
+  }
+
+  newsEditSubmitting.value = true
+  newsEditError.value = null
+
+  const payload = {
+    title: newsEditForm.value.title.trim(),
+    content: newsEditForm.value.content.trim(),
+    excerpt: newsEditForm.value.excerpt.trim(),
+    image_url: newsEditForm.value.image_url.trim(),
+  }
+
+  const { data, error } = await supabase
+    .from('news')
+    .update(payload)
+    .eq('id', editingNewsId.value)
+    .select()
+    .single()
+
+  newsEditSubmitting.value = false
+
+  if (error) {
+    newsEditError.value = 'Nieuwsbericht opslaan mislukt. Probeer opnieuw.'
+    return
+  }
+
+  if (data) {
+    news.value = news.value.map((n) => (n.id === editingNewsId.value ? (data as NewsItem) : n))
+  }
+  closeNewsEditModal()
 }
 
 const openChallengeEditor = (challenge: Challenge) => {
@@ -438,6 +588,9 @@ const toggleMessage = (id: string) => {
                       <XCircle :size="12" /> Afwijzen
                     </button>
                   </template>
+                  <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-roc-50 text-gray-500 hover:text-roc-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-roc-200" @click="openProjectEditor(p)">
+                    Bewerken
+                  </button>
                   <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-red-200" @click="deleteProject(p.id)">
                     <Trash2 :size="12" />
                   </button>
@@ -521,12 +674,20 @@ const toggleMessage = (id: string) => {
                 <p v-if="n.excerpt" class="text-gray-400 text-xs line-clamp-1 mb-1">{{ n.excerpt }}</p>
                 <p class="text-gray-300 text-xs">{{ fmtDateLong(n.created_at) }}</p>
               </div>
-              <button
-                class="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-200 flex-shrink-0 self-start"
-                @click="deleteNews(n.id)"
-              >
-                <Trash2 :size="12" /> Verwijderen
-              </button>
+              <div class="flex items-center gap-2 flex-shrink-0 self-start">
+                <button
+                  class="flex items-center gap-1.5 bg-gray-50 hover:bg-roc-50 text-gray-500 hover:text-roc-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-gray-200 hover:border-roc-200"
+                  @click="openNewsEditor(n)"
+                >
+                  Bewerken
+                </button>
+                <button
+                  class="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-200"
+                  @click="deleteNews(n.id)"
+                >
+                  <Trash2 :size="12" /> Verwijderen
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -673,6 +834,111 @@ const toggleMessage = (id: string) => {
         >
           <template v-if="challengeEditSubmitting"><Loader2 :size="18" class="animate-spin" />Opslaan...</template>
           <template v-else>Challenge Opslaan</template>
+        </button>
+      </form>
+    </Modal>
+
+    <Modal :is-open="projectEditModalOpen" title="Project Bewerken" size="xl" @close="closeProjectModal">
+      <form class="space-y-5" @submit="submitProjectEdit">
+        <div v-if="projectEditError" class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+          <AlertCircle :size="16" />
+          {{ projectEditError }}
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
+            <input v-model="projectForm.title" type="text" required :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Auteur <span class="text-red-500">*</span></label>
+            <input v-model="projectForm.author_name" type="text" required :class="inputClass" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Beschrijving <span class="text-red-500">*</span></label>
+          <textarea v-model="projectForm.description" required :rows="4" :class="`${inputClass} resize-none`" />
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Auteur e-mail</label>
+            <input v-model="projectForm.author_email" type="email" :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tech stack (komma-gescheiden)</label>
+            <input v-model="projectForm.tech_stack_text" type="text" placeholder="Vue, TypeScript, Supabase" :class="inputClass" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">GitHub URL</label>
+            <input v-model="projectForm.github_url" type="url" :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Demo URL</label>
+            <input v-model="projectForm.demo_url" type="url" :class="inputClass" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Afbeelding/video URL</label>
+            <input v-model="projectForm.image_url" type="url" :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Media type</label>
+            <select v-model="projectForm.media_type" :class="inputClass">
+              <option value="image">Afbeelding</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+          <select v-model="projectForm.status" :class="inputClass">
+            <option value="pending">In behandeling</option>
+            <option value="approved">Goedgekeurd</option>
+            <option value="rejected">Afgewezen</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          :disabled="projectEditSubmitting"
+          class="w-full flex items-center justify-center gap-2 bg-roc-500 hover:bg-roc-600 disabled:bg-roc-300 text-white px-6 py-3 rounded-xl font-semibold transition-all"
+        >
+          <template v-if="projectEditSubmitting"><Loader2 :size="18" class="animate-spin" />Opslaan...</template>
+          <template v-else>Project Opslaan</template>
+        </button>
+      </form>
+    </Modal>
+
+    <Modal :is-open="newsEditModalOpen" title="Nieuws Bewerken" @close="closeNewsEditModal">
+      <form class="space-y-5" @submit="submitNewsEdit">
+        <div v-if="newsEditError" class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+          <AlertCircle :size="16" />
+          {{ newsEditError }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
+          <input v-model="newsEditForm.title" type="text" required :class="inputClass" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Samenvatting</label>
+          <input v-model="newsEditForm.excerpt" type="text" :class="inputClass" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Inhoud <span class="text-red-500">*</span></label>
+          <textarea v-model="newsEditForm.content" required :rows="6" :class="`${inputClass} resize-none`" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Afbeelding URL</label>
+          <input v-model="newsEditForm.image_url" type="url" :class="inputClass" />
+        </div>
+        <button
+          type="submit"
+          :disabled="newsEditSubmitting"
+          class="w-full flex items-center justify-center gap-2 bg-roc-500 hover:bg-roc-600 disabled:bg-roc-300 text-white px-6 py-3 rounded-xl font-semibold transition-all"
+        >
+          <template v-if="newsEditSubmitting"><Loader2 :size="18" class="animate-spin" />Opslaan...</template>
+          <template v-else>Nieuws Opslaan</template>
         </button>
       </form>
     </Modal>

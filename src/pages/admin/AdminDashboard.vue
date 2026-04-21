@@ -36,6 +36,23 @@ const newsModalOpen = ref(false)
 const newsForm = ref({ title: '', content: '', excerpt: '', image_url: '' })
 const newsSubmitting = ref(false)
 const newsError = ref<string | null>(null)
+const challengeEditModalOpen = ref(false)
+const challengeEditSubmitting = ref(false)
+const challengeEditError = ref<string | null>(null)
+const editingChallengeId = ref<string | null>(null)
+const challengeForm = ref({
+  title: '',
+  description: '',
+  company_name: '',
+  contact_email: '',
+  deadline: '',
+  difficulty: 'beginner' as Challenge['difficulty'],
+  prize: '',
+  image_url: '',
+  category: '',
+  duration: '',
+  status: 'pending' as Challenge['status'],
+})
 const expandedMessage = ref<string | null>(null)
 
 watchEffect(() => {
@@ -106,6 +123,77 @@ const deleteProject = async (id: string) => {
 const deleteChallenge = async (id: string) => {
   await supabase.from('challenges').delete().eq('id', id)
   challenges.value = challenges.value.filter((c) => c.id !== id)
+}
+
+const openChallengeEditor = (challenge: Challenge) => {
+  editingChallengeId.value = challenge.id
+  challengeEditError.value = null
+  challengeForm.value = {
+    title: challenge.title ?? '',
+    description: challenge.description ?? '',
+    company_name: challenge.company_name ?? '',
+    contact_email: challenge.contact_email ?? '',
+    deadline: challenge.deadline ?? '',
+    difficulty: challenge.difficulty ?? 'beginner',
+    prize: challenge.prize ?? '',
+    image_url: challenge.image_url ?? '',
+    category: challenge.category ?? '',
+    duration: challenge.duration ?? '',
+    status: challenge.status ?? 'pending',
+  }
+  challengeEditModalOpen.value = true
+}
+
+const closeChallengeModal = () => {
+  challengeEditModalOpen.value = false
+  challengeEditSubmitting.value = false
+  challengeEditError.value = null
+  editingChallengeId.value = null
+}
+
+const submitChallengeEdit = async (e: Event) => {
+  e.preventDefault()
+  if (!editingChallengeId.value) return
+  if (!challengeForm.value.title.trim() || !challengeForm.value.description.trim() || !challengeForm.value.company_name.trim()) {
+    challengeEditError.value = 'Titel, beschrijving en bedrijfsnaam zijn verplicht.'
+    return
+  }
+
+  challengeEditSubmitting.value = true
+  challengeEditError.value = null
+
+  const payload = {
+    title: challengeForm.value.title.trim(),
+    description: challengeForm.value.description.trim(),
+    company_name: challengeForm.value.company_name.trim(),
+    contact_email: challengeForm.value.contact_email.trim(),
+    deadline: challengeForm.value.deadline,
+    difficulty: challengeForm.value.difficulty,
+    prize: challengeForm.value.prize.trim(),
+    image_url: challengeForm.value.image_url.trim(),
+    category: challengeForm.value.category.trim(),
+    duration: challengeForm.value.duration.trim(),
+    status: challengeForm.value.status,
+  }
+
+  const { data, error } = await supabase
+    .from('challenges')
+    .update(payload)
+    .eq('id', editingChallengeId.value)
+    .select()
+    .single()
+
+  challengeEditSubmitting.value = false
+
+  if (error) {
+    challengeEditError.value = 'Opslaan mislukt. Controleer de velden en probeer opnieuw.'
+    return
+  }
+
+  if (data) {
+    challenges.value = challenges.value.map((c) => (c.id === editingChallengeId.value ? (data as Challenge) : c))
+  }
+  closeChallengeModal()
 }
 
 const submitNews = async (e: Event) => {
@@ -394,6 +482,9 @@ const toggleMessage = (id: string) => {
                       <XCircle :size="12" /> Afwijzen
                     </button>
                   </template>
+                  <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-roc-50 text-gray-500 hover:text-roc-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-roc-200" @click="openChallengeEditor(c)">
+                    Bewerken
+                  </button>
                   <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-red-200" @click="deleteChallenge(c.id)">
                     <Trash2 :size="12" />
                   </button>
@@ -505,6 +596,83 @@ const toggleMessage = (id: string) => {
         >
           <template v-if="newsSubmitting"><Loader2 :size="18" class="animate-spin" />Plaatsen...</template>
           <template v-else><Newspaper :size="18" />Nieuwsbericht Plaatsen</template>
+        </button>
+      </form>
+    </Modal>
+
+    <Modal :is-open="challengeEditModalOpen" title="Challenge Bewerken" size="xl" @close="closeChallengeModal">
+      <form class="space-y-5" @submit="submitChallengeEdit">
+        <div v-if="challengeEditError" class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+          <AlertCircle :size="16" />
+          {{ challengeEditError }}
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
+            <input v-model="challengeForm.title" type="text" required :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Bedrijf <span class="text-red-500">*</span></label>
+            <input v-model="challengeForm.company_name" type="text" required :class="inputClass" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Beschrijving <span class="text-red-500">*</span></label>
+          <textarea v-model="challengeForm.description" required :rows="4" :class="`${inputClass} resize-none`" />
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Contact e-mail</label>
+            <input v-model="challengeForm.contact_email" type="email" :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Deadline</label>
+            <input v-model="challengeForm.deadline" type="date" :class="inputClass" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Moeilijkheid</label>
+            <select v-model="challengeForm.difficulty" :class="inputClass">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+            <select v-model="challengeForm.status" :class="inputClass">
+              <option value="pending">In behandeling</option>
+              <option value="approved">Goedgekeurd</option>
+              <option value="rejected">Afgewezen</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Categorie</label>
+            <input v-model="challengeForm.category" type="text" :class="inputClass" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Prijs</label>
+            <input v-model="challengeForm.prize" type="text" :class="inputClass" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Duur</label>
+            <input v-model="challengeForm.duration" type="text" :class="inputClass" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Afbeelding URL</label>
+          <input v-model="challengeForm.image_url" type="url" placeholder="https://..." :class="inputClass" />
+        </div>
+        <button
+          type="submit"
+          :disabled="challengeEditSubmitting"
+          class="w-full flex items-center justify-center gap-2 bg-roc-500 hover:bg-roc-600 disabled:bg-roc-300 text-white px-6 py-3 rounded-xl font-semibold transition-all"
+        >
+          <template v-if="challengeEditSubmitting"><Loader2 :size="18" class="animate-spin" />Opslaan...</template>
+          <template v-else>Challenge Opslaan</template>
         </button>
       </form>
     </Modal>

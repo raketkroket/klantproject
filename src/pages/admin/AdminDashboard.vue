@@ -146,7 +146,12 @@ const deleteChallenge = async (id: string) => {
   challenges.value = challenges.value.filter((c) => c.id !== id)
 }
 const deleteMessage = async (id: string) => {
-  await supabase.from('contact_messages').delete().eq('id', id)
+  const { error } = await supabase.from('contact_messages').delete().eq('id', id)
+  if (error) {
+    console.error('Kon bericht niet verwijderen:', error.message)
+    await fetchMessages()
+    return
+  }
   messages.value = messages.value.filter((m) => m.id !== id)
   if (expandedMessage.value === id) expandedMessage.value = null
 }

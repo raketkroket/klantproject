@@ -145,6 +145,11 @@ const deleteChallenge = async (id: string) => {
   await supabase.from('challenges').delete().eq('id', id)
   challenges.value = challenges.value.filter((c) => c.id !== id)
 }
+const deleteMessage = async (id: string) => {
+  await supabase.from('contact_messages').delete().eq('id', id)
+  messages.value = messages.value.filter((m) => m.id !== id)
+  if (expandedMessage.value === id) expandedMessage.value = null
+}
 
 const openProjectEditor = (project: Project) => {
   editingProjectId.value = project.id
@@ -720,6 +725,12 @@ const toggleMessage = (id: string) => {
                   <EyeOff v-if="expandedMessage === m.id" :size="12" />
                   <Eye v-else :size="12" />
                   {{ expandedMessage === m.id ? 'Inklappen' : 'Lees meer' }}
+                </button>
+                <button
+                  class="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-200 flex-shrink-0"
+                  @click="deleteMessage(m.id)"
+                >
+                  <Trash2 :size="12" /> Verwijderen
                 </button>
               </div>
               <p class="text-gray-300 text-xs mt-3">{{ fmtDateTime(m.created_at) }}</p>

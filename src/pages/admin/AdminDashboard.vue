@@ -31,6 +31,7 @@ const projects = ref<Project[]>([])
 const challenges = ref<Challenge[]>([])
 const news = ref<NewsItem[]>([])
 const messages = ref<ContactMessage[]>([])
+const messagesError = ref<string | null>(null)
 const loading = ref(true)
 const newsModalOpen = ref(false)
 const newsForm = ref({ title: '', content: '', excerpt: '', image_url: '' })
@@ -95,7 +96,12 @@ const fetchNews = async () => {
   if (data) news.value = data as NewsItem[]
 }
 const fetchMessages = async () => {
-  const { data } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false })
+  if (error) {
+    messagesError.value = `Contactberichten laden mislukt: ${error.message}`
+    return
+  }
+  messagesError.value = null
   if (data) messages.value = data as ContactMessage[]
 }
 const fetchAll = async () => {
@@ -146,9 +152,11 @@ const deleteChallenge = async (id: string) => {
   challenges.value = challenges.value.filter((c) => c.id !== id)
 }
 const deleteMessage = async (id: string) => {
+  messagesError.value = null
   const { error } = await supabase.from('contact_messages').delete().eq('id', id)
   if (error) {
     console.error('Kon bericht niet verwijderen:', error.message)
+    messagesError.value = `Verwijderen mislukt: ${error.message}`
     await fetchMessages()
     return
   }
@@ -706,6 +714,10 @@ const toggleMessage = (id: string) => {
           <div class="mb-6">
             <h2 class="text-xl font-bold text-gray-900">Contactberichten</h2>
             <p class="text-sm text-gray-400 mt-0.5">{{ messages.length }} berichten</p>
+          </div>
+          <div v-if="messagesError" class="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+            <AlertCircle :size="16" />
+            {{ messagesError }}
           </div>
           <div class="space-y-3">
             <div v-if="messages.length === 0" class="text-center py-16 text-gray-400">

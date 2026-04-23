@@ -51,6 +51,7 @@ const projectEditModalOpen = ref(false)
 const projectEditSubmitting = ref(false)
 const projectEditError = ref<string | null>(null)
 const editingProjectId = ref<string | null>(null)
+const projectEditHiddenTags = ref<string[]>([])
 const projectForm = ref({
   title: '',
   description: '',
@@ -211,12 +212,13 @@ const deleteSubmission = async (id: string) => {
 const openProjectEditor = (project: Project) => {
   editingProjectId.value = project.id
   projectEditError.value = null
+  projectEditHiddenTags.value = (project.tech_stack ?? []).filter((tech) => tech.startsWith(CHALLENGE_TAG_PREFIX))
   projectForm.value = {
     title: project.title ?? '',
     description: project.description ?? '',
     author_name: project.author_name ?? '',
     author_email: project.author_email ?? '',
-    tech_stack_text: (project.tech_stack ?? []).join(', '),
+    tech_stack_text: visibleTechStack(project.tech_stack).join(', '),
     github_url: project.github_url ?? '',
     demo_url: project.demo_url ?? '',
     image_url: project.image_url ?? '',
@@ -231,6 +233,7 @@ const closeProjectModal = () => {
   projectEditSubmitting.value = false
   projectEditError.value = null
   editingProjectId.value = null
+  projectEditHiddenTags.value = []
 }
 
 const submitProjectEdit = async (e: Event) => {
@@ -244,15 +247,19 @@ const submitProjectEdit = async (e: Event) => {
   projectEditSubmitting.value = true
   projectEditError.value = null
 
+  const visibleTags = projectForm.value.tech_stack_text
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+
+  const mergedTags = Array.from(new Set([...projectEditHiddenTags.value, ...visibleTags]))
+
   const payload = {
     title: projectForm.value.title.trim(),
     description: projectForm.value.description.trim(),
     author_name: projectForm.value.author_name.trim(),
     author_email: projectForm.value.author_email.trim(),
-    tech_stack: projectForm.value.tech_stack_text
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean),
+    tech_stack: mergedTags,
     github_url: projectForm.value.github_url.trim(),
     demo_url: projectForm.value.demo_url.trim(),
     image_url: projectForm.value.image_url.trim(),
@@ -275,11 +282,9 @@ const submitProjectEdit = async (e: Event) => {
   }
 
   if (data) {
-    projects.value = projects.value.map((p) => (p.id === editingProjectId.value ? (data as Project) : p))
     const editedProject = data as Project
-    if (isChallengeProject(editedProject)) {
-      submissions.value = submissions.value.map((s) => (s.id === editingProjectId.value ? editedProject : s))
-    }
+    projects.value = projects.value.map((p) => (p.id === editingProjectId.value ? editedProject : p))
+    submissions.value = submissions.value.map((s) => (s.id === editingProjectId.value ? editedProject : s))
   }
   closeProjectModal()
 }
@@ -761,6 +766,9 @@ const toggleSubmission = (id: string) => {
                     <EyeOff v-if="expandedSubmission === s.id" :size="12" />
                     <Eye v-else :size="12" />
                     {{ expandedSubmission === s.id ? 'Inklappen' : 'Lees meer' }}
+                  </button>
+                  <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-roc-50 text-gray-500 hover:text-roc-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-roc-200" @click="openProjectEditor(s)">
+                    Bewerken
                   </button>
                   <button v-if="s.status === 'pending'" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border border-emerald-200" @click="updateSubmissionStatus(s.id, 'approved')">
                     <CheckCircle :size="12" /> Goedkeuren

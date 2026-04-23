@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase'
 import type { Project } from '../types'
 
 const CHALLENGE_TAG_PREFIX = '__challenge:'
+const isChallengeSubmission = (project: Pick<Project, 'tech_stack'>) =>
+  (project.tech_stack ?? []).some((tech) => tech.startsWith(CHALLENGE_TAG_PREFIX))
 const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
 
 const router = useRouter()
@@ -21,8 +23,10 @@ const fetchRecent = async () => {
     .select('*')
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
-    .limit(3)
-  recentProjects.value = data ?? []
+    .limit(20)
+  recentProjects.value = ((data ?? []) as Project[])
+    .filter((project) => !isChallengeSubmission(project))
+    .slice(0, 3)
   loadingProjects.value = false
 }
 

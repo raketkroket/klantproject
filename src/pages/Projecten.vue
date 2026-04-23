@@ -38,6 +38,8 @@ const uploadError = ref('')
 const previewUrl = ref('')
 const dragOver = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const isChallengeSubmission = (project: Pick<Project, 'tech_stack'>) =>
+  (project.tech_stack ?? []).some((tech) => tech.startsWith(CHALLENGE_TAG_PREFIX))
 const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
 
 const fetchProjects = async () => {
@@ -46,7 +48,7 @@ const fetchProjects = async () => {
     .select('*')
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
-  projects.value = data ?? []
+  projects.value = ((data ?? []) as Project[]).filter((project) => !isChallengeSubmission(project))
   loading.value = false
 }
 

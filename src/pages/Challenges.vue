@@ -10,6 +10,10 @@ import type { Challenge, Project } from '../types'
 import { useScrollAnimation } from '../composables/useScrollAnimation'
 
 const CHALLENGE_TAG_PREFIX = '__challenge:'
+const SUBMISSION_IMAGE_ACCEPTED = 'image/jpeg,image/png,image/webp,image/gif'
+const SUBMISSION_IMAGE_MAX_MB = 25
+
+type SubmissionUploadState = 'idle' | 'uploading' | 'done' | 'error'
 
 const DIFFICULTY_META = {
   beginner: {
@@ -56,6 +60,11 @@ const projectsLoading = ref(false)
 const submissionsSubmitting = ref(false)
 const submissionsError = ref('')
 const submissionsSuccess = ref('')
+const submissionUploadState = ref<SubmissionUploadState>('idle')
+const submissionUploadProgress = ref(0)
+const submissionUploadError = ref('')
+const submissionPreviewUrl = ref('')
+const submissionFileInput = ref<HTMLInputElement | null>(null)
 const form = ref({
   title: '', description: '', company_name: '', contact_email: '',
   deadline: '', difficulty: 'beginner' as Challenge['difficulty'], prize: '',
@@ -107,6 +116,10 @@ const openDetail = (challenge: Challenge) => {
   detail.value = challenge
   submissionsError.value = ''
   submissionsSuccess.value = ''
+  submissionUploadState.value = 'idle'
+  submissionUploadProgress.value = 0
+  submissionUploadError.value = ''
+  submissionPreviewUrl.value = ''
   submissionForm.value.title = ''
   submissionForm.value.description = ''
   submissionForm.value.author_name = ''
@@ -115,6 +128,65 @@ const openDetail = (challenge: Challenge) => {
   submissionForm.value.github_url = ''
   submissionForm.value.demo_url = ''
   submissionForm.value.image_url = ''
+}
+
+const clearSubmissionMedia = () => {
+  submissionUploadState.value = 'idle'
+  submissionUploadProgress.value = 0
+  submissionUploadError.value = ''
+  submissionPreviewUrl.value = ''
+  submissionForm.value.image_url = ''
+  if (submissionFileInput.value) submissionFileInput.value.value = ''
+}
+
+const handleSubmissionFile = async (file: File) => {
+  submissionUploadError.value = ''
+
+  if (!file.type.startsWith('image/')) {
+    submissionUploadState.value = 'error'
+    submissionUploadError.value = 'Alleen afbeeldingen (JPG, PNG, WebP of GIF) zijn toegestaan.'
+    return
+  }
+
+  if (file.size > SUBMISSION_IMAGE_MAX_MB * 1024 * 1024) {
+    submissionUploadState.value = 'error'
+    submissionUploadError.value = `Afbeelding is te groot. Maximum is ${SUBMISSION_IMAGE_MAX_MB} MB.`
+    return
+  }
+
+  submissionUploadState.value = 'uploading'
+  submissionUploadProgress.value = 10
+
+  const ext = file.name.split('.').pop() || 'jpg'
+  const path = `challenge-submissions/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+  const interval = setInterval(() => {
+    submissionUploadProgress.value = Math.min(submissionUploadProgress.value + 15, 85)
+  }, 250)
+
+  const { data, error } = await supabase.storage
+    .from('project-media')
+    .upload(path, file, { cacheControl: '3600', upsert: false })
+
+  clearInterval(interval)
+
+  if (error || !data) {
+    submissionUploadState.value = 'error'
+    submissionUploadError.value = 'Upload mislukt. Probeer opnieuw.'
+    return
+  }
+
+  const { data: { publicUrl } } = supabase.storage.from('project-media').getPublicUrl(data.path)
+  submissionUploadProgress.value = 100
+  submissionUploadState.value = 'done'
+  submissionPreviewUrl.value = publicUrl
+  submissionForm.value.image_url = publicUrl
+}
+
+const onSubmissionFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) handleSubmissionFile(file)
 }
 
 let channel: ReturnType<typeof supabase.channel> | null = null
@@ -195,6 +267,7 @@ const handleSubmissionSubmit = async () => {
   }
 
   submissionsSuccess.value = 'Je project is verzonden en wacht op goedkeuring.'
+  clearSubmissionMedia()
   submissionForm.value.title = ''
   submissionForm.value.description = ''
   submissionForm.value.author_name = ''
@@ -590,7 +663,32 @@ const resetTilt = (e: MouseEvent) => {
                     <input v-model="submissionForm.tech_stack_text" class="form-input-dark sm:col-span-2" placeholder="Tech stack, gescheiden met komma's" />
                     <input v-model="submissionForm.github_url" class="form-input-dark" placeholder="GitHub URL" />
                     <input v-model="submissionForm.demo_url" class="form-input-dark" placeholder="Demo URL" />
-                    <input v-model="submissionForm.image_url" class="form-input-dark sm:col-span-2" placeholder="Preview / afbeelding URL" />
+                    <div class="sm:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                      <p class="text-[0.65rem] uppercase tracking-wider font-bold text-white/45 mb-2">Afbeelding vanaf je laptop</p>
+                      <input
+                        ref="submissionFileInput"
+                        type="file"
+                        :accept="SUBMISSION_IMAGE_ACCEPTED"
+                        class="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-white/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-white/25"
+                        @change="onSubmissionFileChange"
+                      />
+                      <div v-if="submissionUploadState === 'uploading'" class="mt-2 text-xs text-white/60">
+                        Uploaden... {{ submissionUploadProgress }}%
+                      </div>
+                      <div v-if="submissionUploadError" class="mt-2 text-xs text-rose-300">{{ submissionUploadError }}</div>
+                      <div v-if="submissionPreviewUrl" class="mt-3 rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                        <img :src="submissionPreviewUrl" alt="Preview upload" class="w-full h-40 object-cover" />
+                      </div>
+                      <button
+                        v-if="submissionPreviewUrl"
+                        type="button"
+                        class="mt-2 text-xs font-semibold text-white/70 hover:text-white"
+                        @click="clearSubmissionMedia"
+                      >
+                        Verwijder afbeelding
+                      </button>
+                    </div>
+                    <input v-model="submissionForm.image_url" class="form-input-dark sm:col-span-2" placeholder="Of plak een afbeelding URL (optioneel)" />
                   </div>
                   <div v-if="submissionsError" class="mt-3 text-sm text-rose-300">{{ submissionsError }}</div>
                   <div v-if="submissionsSuccess" class="mt-3 text-sm text-emerald-300">{{ submissionsSuccess }}</div>

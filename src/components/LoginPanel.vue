@@ -21,6 +21,23 @@ const error = ref('')
 const success = ref('')
 const loading = ref(false)
 
+const toSignupMessage = (err: string) => {
+  const lower = err.toLowerCase()
+  if (lower.includes('already registered') || lower.includes('already been registered')) {
+    return 'Er bestaat al een account met dit e-mailadres. Log in of reset je wachtwoord.'
+  }
+  if (lower.includes('password')) {
+    return 'Kies een sterker wachtwoord en probeer opnieuw.'
+  }
+  if (lower.includes('invalid email')) {
+    return 'Voer een geldig e-mailadres in.'
+  }
+  if (lower.includes('signup is disabled')) {
+    return 'Registreren is momenteel uitgeschakeld. Neem contact op met een beheerder.'
+  }
+  return 'Registratie mislukt. Probeer het opnieuw.'
+}
+
 const resetFields = () => {
   error.value = ''
   success.value = ''
@@ -63,7 +80,7 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
   error.value = ''
-  if (regCode.value !== REGISTRATION_CODE) {
+  if (regCode.value.trim().toUpperCase() !== REGISTRATION_CODE) {
     error.value = 'Ongeldige registratiecode. Neem contact op met een beheerder.'
     return
   }
@@ -76,12 +93,14 @@ const handleRegister = async () => {
     return
   }
   loading.value = true
-  const { error: err } = await signUp(email.value, password.value)
+  const { error: err, requiresEmailConfirmation } = await signUp(email.value, password.value)
   loading.value = false
   if (err) {
-    error.value = 'Registratie mislukt. Probeer het opnieuw.'
+    error.value = toSignupMessage(err)
   } else {
-    success.value = 'Account aangemaakt! Je kunt nu inloggen.'
+    success.value = requiresEmailConfirmation
+      ? 'Account aangemaakt! Controleer je e-mail om je account te bevestigen voordat je inlogt.'
+      : 'Account aangemaakt! Je kunt nu inloggen.'
     tab.value = 'login'
   }
 }

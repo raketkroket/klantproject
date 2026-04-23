@@ -13,6 +13,7 @@ import { useScrollAnimation } from '../composables/useScrollAnimation'
 const TECH_OPTIONS = ['React', 'TypeScript', 'Node.js', 'Python', 'Vue', 'Next.js', 'Laravel', 'Flutter']
 const ACCEPTED = 'image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime'
 const MAX_MB = 50
+const CHALLENGE_TAG_PREFIX = '__challenge:'
 
 type UploadState = 'idle' | 'uploading' | 'done' | 'error'
 
@@ -37,6 +38,7 @@ const uploadError = ref('')
 const previewUrl = ref('')
 const dragOver = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
 
 const fetchProjects = async () => {
   const { data } = await supabase
@@ -169,7 +171,7 @@ const isNew = (iso: string) => (Date.now() - new Date(iso).getTime()) / 86_400_0
 
 const availableTech = computed(() => {
   const set = new Set<string>()
-  projects.value.forEach((p) => p.tech_stack?.forEach((t) => set.add(t)))
+  projects.value.forEach((p) => visibleTechStack(p.tech_stack).forEach((t) => set.add(t)))
   return Array.from(set).slice(0, 14)
 })
 
@@ -180,8 +182,8 @@ const filtered = computed(() => {
       || p.title.toLowerCase().includes(q)
       || p.author_name.toLowerCase().includes(q)
       || p.description.toLowerCase().includes(q)
-      || p.tech_stack?.some((t) => t.toLowerCase().includes(q))
-    const matchTech = !activeTech.value || p.tech_stack?.includes(activeTech.value)
+      || visibleTechStack(p.tech_stack).some((t) => t.toLowerCase().includes(q))
+    const matchTech = !activeTech.value || visibleTechStack(p.tech_stack).includes(activeTech.value)
     return matchQ && matchTech
   })
 })
@@ -372,9 +374,9 @@ const stats = computed(() => ({
             </div>
 
             <div class="md:col-span-5 p-7 md:p-10 flex flex-col">
-              <div v-if="featured.tech_stack?.length" class="flex flex-wrap gap-1.5 mb-5">
+              <div v-if="visibleTechStack(featured.tech_stack).length" class="flex flex-wrap gap-1.5 mb-5">
                 <span
-                  v-for="t in featured.tech_stack" :key="t"
+                  v-for="t in visibleTechStack(featured.tech_stack)" :key="t"
                   class="text-[0.7rem] font-bold bg-stone-100 text-gray-700 px-2.5 py-1 rounded-md"
                 >{{ t }}</span>
               </div>
@@ -467,9 +469,9 @@ const stats = computed(() => ({
               </div>
 
               <div class="absolute inset-x-0 bottom-0 p-5 text-white">
-                <div v-if="project.tech_stack?.length" class="flex flex-wrap gap-1 mb-2.5">
+                <div v-if="visibleTechStack(project.tech_stack).length" class="flex flex-wrap gap-1 mb-2.5">
                   <span
-                    v-for="t in project.tech_stack.slice(0, 3)" :key="t"
+                    v-for="t in visibleTechStack(project.tech_stack).slice(0, 3)" :key="t"
                     class="text-[0.6rem] font-bold bg-white/15 backdrop-blur text-white px-2 py-0.5 rounded-md tracking-wide"
                   >{{ t }}</span>
                 </div>
@@ -523,9 +525,9 @@ const stats = computed(() => ({
 
         <div class="p-8 md:p-10 overflow-y-auto flex flex-col">
           <div class="flex items-start justify-between gap-4 mb-5">
-            <div v-if="activeProject.tech_stack?.length" class="flex flex-wrap gap-1.5">
+            <div v-if="visibleTechStack(activeProject.tech_stack).length" class="flex flex-wrap gap-1.5">
               <span
-                v-for="t in activeProject.tech_stack" :key="t"
+                v-for="t in visibleTechStack(activeProject.tech_stack)" :key="t"
                 class="text-[0.7rem] font-bold bg-stone-100 text-gray-700 px-2.5 py-1 rounded-md"
               >{{ t }}</span>
             </div>

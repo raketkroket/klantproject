@@ -31,6 +31,21 @@ export interface Challenge {
   created_at: string;
 }
 
+export interface ChallengeSubmission {
+  id: string;
+  challenge_id: string;
+  title: string;
+  description: string;
+  author_name: string;
+  author_email: string;
+  tech_stack: string[];
+  github_url: string;
+  demo_url: string;
+  image_url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+}
+
 export interface NewsItem {
   id: string;
   title: string;

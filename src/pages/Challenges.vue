@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import {
   Trophy, Plus, Calendar, Building2, Clock, X,
   Sparkles, Flame, Target, Search, Image as ImageIcon,
   Swords, Gem, Zap, Scroll, ChevronRight, Compass,
 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
-import type { Challenge } from '../types'
+import type { Challenge, Project } from '../types'
 import { useScrollAnimation } from '../composables/useScrollAnimation'
+
+const CHALLENGE_TAG_PREFIX = '__challenge:'
 
 const DIFFICULTY_META = {
   beginner: {
@@ -49,11 +51,29 @@ const submitting = ref(false)
 const activeCategory = ref<CategoryFilter>('Alle')
 const search = ref('')
 const detail = ref<Challenge | null>(null)
+const challengeProjects = ref<Project[]>([])
+const projectsLoading = ref(false)
+const submissionsSubmitting = ref(false)
+const submissionsError = ref('')
+const submissionsSuccess = ref('')
 const form = ref({
   title: '', description: '', company_name: '', contact_email: '',
   deadline: '', difficulty: 'beginner' as Challenge['difficulty'], prize: '',
   image_url: '', category: 'Web', duration: '',
 })
+const submissionForm = ref({
+  title: '',
+  description: '',
+  author_name: '',
+  author_email: '',
+  tech_stack_text: '',
+  github_url: '',
+  demo_url: '',
+  image_url: '',
+})
+
+const challengeTag = (challengeId: string) => `${CHALLENGE_TAG_PREFIX}${challengeId}`
+const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
 
 const fetchChallenges = async () => {
   const { data } = await supabase
@@ -65,15 +85,60 @@ const fetchChallenges = async () => {
   loading.value = false
 }
 
+const fetchChallengeProjects = async () => {
+  projectsLoading.value = true
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+  projectsLoading.value = false
+
+  if (error) {
+    submissionsError.value = 'De projectinzendingen konden niet worden geladen.'
+    challengeProjects.value = []
+    return
+  }
+
+  challengeProjects.value = (data ?? []) as Project[]
+}
+
+const openDetail = (challenge: Challenge) => {
+  detail.value = challenge
+  submissionsError.value = ''
+  submissionsSuccess.value = ''
+  submissionForm.value.title = ''
+  submissionForm.value.description = ''
+  submissionForm.value.author_name = ''
+  submissionForm.value.author_email = ''
+  submissionForm.value.tech_stack_text = ''
+  submissionForm.value.github_url = ''
+  submissionForm.value.demo_url = ''
+  submissionForm.value.image_url = ''
+}
+
 let channel: ReturnType<typeof supabase.channel> | null = null
+let submissionsChannel: ReturnType<typeof supabase.channel> | null = null
 onMounted(() => {
   fetchChallenges()
+  fetchChallengeProjects()
   channel = supabase
     .channel('challenges-public')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, fetchChallenges)
     .subscribe()
+  submissionsChannel = supabase
+    .channel('challenge-projects-public')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchChallengeProjects)
+    .subscribe()
 })
-onBeforeUnmount(() => { if (channel) supabase.removeChannel(channel) })
+watch([detail, showForm], ([detailOpen, formOpen]) => {
+  document.body.style.overflow = detailOpen || formOpen ? 'hidden' : ''
+})
+onBeforeUnmount(() => {
+  if (channel) supabase.removeChannel(channel)
+  if (submissionsChannel) supabase.removeChannel(submissionsChannel)
+  document.body.style.overflow = ''
+})
 
 const handleSubmit = async () => {
   const f = form.value
@@ -90,6 +155,61 @@ const handleSubmit = async () => {
   }
   setTimeout(() => { submitted.value = false }, 4000)
 }
+
+const handleSubmissionSubmit = async () => {
+  if (!detail.value) return
+  if (!submissionForm.value.title.trim() || !submissionForm.value.description.trim() || !submissionForm.value.author_name.trim()) {
+    submissionsError.value = 'Titel, beschrijving en naam zijn verplicht.'
+    return
+  }
+
+  submissionsSubmitting.value = true
+  submissionsError.value = ''
+  submissionsSuccess.value = ''
+
+  const payload = {
+    title: submissionForm.value.title.trim(),
+    description: submissionForm.value.description.trim(),
+    author_name: submissionForm.value.author_name.trim(),
+    author_email: submissionForm.value.author_email.trim(),
+    tech_stack: [
+      challengeTag(detail.value.id),
+      ...submissionForm.value.tech_stack_text
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean),
+    ],
+    github_url: submissionForm.value.github_url.trim(),
+    demo_url: submissionForm.value.demo_url.trim(),
+    image_url: submissionForm.value.image_url.trim(),
+    media_type: 'image',
+    status: 'pending',
+  }
+
+  const { error } = await supabase.from('projects').insert(payload)
+  submissionsSubmitting.value = false
+
+  if (error) {
+    submissionsError.value = 'Je project kon niet worden verzonden. Probeer opnieuw.'
+    return
+  }
+
+  submissionsSuccess.value = 'Je project is verzonden en wacht op goedkeuring.'
+  submissionForm.value.title = ''
+  submissionForm.value.description = ''
+  submissionForm.value.author_name = ''
+  submissionForm.value.author_email = ''
+  submissionForm.value.tech_stack_text = ''
+  submissionForm.value.github_url = ''
+  submissionForm.value.demo_url = ''
+  submissionForm.value.image_url = ''
+}
+
+const detailProjects = computed(() => {
+  if (!detail.value) return []
+  const tag = challengeTag(detail.value.id)
+  return challengeProjects.value.filter((project) => project.tech_stack?.includes(tag))
+})
 
 const filtered = computed(() => challenges.value.filter((c) => {
   const matchesCat = activeCategory.value === 'Alle' || (c.category || '').toLowerCase() === activeCategory.value.toLowerCase()
@@ -294,7 +414,7 @@ const resetTilt = (e: MouseEvent) => {
             :data-animate-delay="`${Math.min(i * 80, 500)}`"
             @mousemove="handleTilt"
             @mouseleave="resetTilt"
-            @click="detail = c"
+            @click="openDetail(c)"
           >
             <div
               :class="['absolute -inset-px rounded-[1.85rem] opacity-60 group-hover:opacity-100 blur-xl transition-opacity pointer-events-none bg-gradient-to-br to-transparent',
@@ -395,12 +515,11 @@ const resetTilt = (e: MouseEvent) => {
 
     <div
       v-if="detail"
-      class="fixed inset-0 z-[150] flex items-center justify-center p-3 md:p-4 animate-fadein"
-      :style="{ backgroundColor: 'rgba(5,7,12,0.85)', backdropFilter: 'blur(14px)' }"
+      class="modal-backdrop animate-fadein"
       @click="detail = null"
     >
-      <div class="relative bg-[#0f1218] border border-white/10 rounded-2xl md:rounded-[1.75rem] shadow-2xl w-full max-w-3xl max-h-[calc(100dvh-1rem)] md:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col" @click.stop>
-        <div class="relative h-28 sm:h-36 md:h-44 overflow-hidden shrink-0">
+      <div class="modal-card challenge-card" @click.stop>
+        <div class="relative h-24 sm:h-32 md:h-40 overflow-hidden shrink-0">
           <img v-if="detail.image_url" :src="detail.image_url" :alt="detail.title" class="w-full h-full object-cover" />
           <div v-else :class="['w-full h-full bg-gradient-to-br', diffMeta(detail.difficulty).from, 'to-[#0b0d12]', 'flex items-center justify-center']">
             <Swords :size="80" class="text-white/20" />
@@ -426,51 +545,126 @@ const resetTilt = (e: MouseEvent) => {
           </div>
         </div>
 
-        <div class="p-4 md:p-6 overflow-y-auto min-h-0 flex-1 overscroll-contain">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-5">
-            <div v-if="detail.deadline" class="rounded-2xl p-3 bg-white/5 border border-white/10">
-              <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Calendar :size="11" /> Deadline</div>
-              <div class="text-sm font-bold">{{ fmtLong(detail.deadline) }}</div>
-            </div>
-            <div v-if="detail.duration" class="rounded-2xl p-3 bg-white/5 border border-white/10">
-              <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Clock :size="11" /> Duur</div>
-              <div class="text-sm font-bold">{{ detail.duration }}</div>
-            </div>
-            <div v-if="detail.prize" class="rounded-2xl p-3 bg-amber-500/10 border border-amber-400/30">
-              <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-amber-200/80 mb-1"><Trophy :size="11" /> Reward</div>
-              <div class="text-sm font-bold text-amber-200">{{ detail.prize }}</div>
-            </div>
-            <div class="rounded-2xl p-3 bg-white/5 border border-white/10">
-              <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Gem :size="11" /> Niveau</div>
-              <div class="text-sm font-bold flex items-center gap-0.5">
-                <Gem v-for="n in 3" :key="n" :size="12"
-                  :class="n <= diffMeta(detail.difficulty).stars ? diffMeta(detail.difficulty).accent : 'text-white/15'" />
+        <div class="modal-body p-4 md:p-6">
+          <div class="grid lg:grid-cols-12 gap-5 md:gap-6">
+            <aside class="lg:col-span-5">
+              <div class="rounded-3xl border border-roc-400/25 bg-gradient-to-br from-roc-500/10 to-white/[0.03] p-4 md:p-5 h-full">
+                <div class="grid grid-cols-2 gap-2 md:gap-3 mb-4">
+                  <div v-if="detail.deadline" class="rounded-2xl p-3 bg-white/5 border border-white/10">
+                    <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Calendar :size="11" /> Deadline</div>
+                    <div class="text-sm font-bold">{{ fmtLong(detail.deadline) }}</div>
+                  </div>
+                  <div v-if="detail.duration" class="rounded-2xl p-3 bg-white/5 border border-white/10">
+                    <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Clock :size="11" /> Duur</div>
+                    <div class="text-sm font-bold">{{ detail.duration }}</div>
+                  </div>
+                  <div v-if="detail.prize" class="rounded-2xl p-3 bg-amber-500/10 border border-amber-400/30 col-span-2">
+                    <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-amber-200/80 mb-1"><Trophy :size="11" /> Reward</div>
+                    <div class="text-sm font-bold text-amber-200">{{ detail.prize }}</div>
+                  </div>
+                  <div class="rounded-2xl p-3 bg-white/5 border border-white/10 col-span-2">
+                    <div class="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-white/40 mb-1"><Gem :size="11" /> Niveau</div>
+                    <div class="text-sm font-bold flex items-center gap-0.5">
+                      <Gem v-for="n in 3" :key="n" :size="12"
+                        :class="n <= diffMeta(detail.difficulty).stars ? diffMeta(detail.difficulty).accent : 'text-white/15'" />
+                    </div>
+                  </div>
+                </div>
+
+                <h3 class="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-white/40 mb-2">Challenge</h3>
+                <p class="text-white/80 text-sm leading-relaxed whitespace-pre-wrap mb-5">{{ detail.description }}</p>
+
+                <div class="border-t border-white/10 pt-4">
+                  <div class="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                      <h3 class="text-sm font-bold text-white">Plaats je reactie/project</h3>
+                      <p class="text-xs text-white/55 mt-0.5">Wordt eerst goedgekeurd voor bedrijven dit zien.</p>
+                    </div>
+                    <Swords :size="16" class="text-roc-300 shrink-0" />
+                  </div>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    <input v-model="submissionForm.title" class="form-input-dark" placeholder="Projecttitel" />
+                    <input v-model="submissionForm.author_name" class="form-input-dark" placeholder="Jouw naam" />
+                    <input v-model="submissionForm.author_email" type="email" class="form-input-dark sm:col-span-2" placeholder="Jouw e-mailadres" />
+                    <textarea v-model="submissionForm.description" :rows="4" class="form-input-dark sm:col-span-2 !rounded-2xl" placeholder="Vertel wat je hebt gebouwd en waarom het past bij deze challenge" />
+                    <input v-model="submissionForm.tech_stack_text" class="form-input-dark sm:col-span-2" placeholder="Tech stack, gescheiden met komma's" />
+                    <input v-model="submissionForm.github_url" class="form-input-dark" placeholder="GitHub URL" />
+                    <input v-model="submissionForm.demo_url" class="form-input-dark" placeholder="Demo URL" />
+                    <input v-model="submissionForm.image_url" class="form-input-dark sm:col-span-2" placeholder="Preview / afbeelding URL" />
+                  </div>
+                  <div v-if="submissionsError" class="mt-3 text-sm text-rose-300">{{ submissionsError }}</div>
+                  <div v-if="submissionsSuccess" class="mt-3 text-sm text-emerald-300">{{ submissionsSuccess }}</div>
+                  <button
+                    class="mt-4 w-full inline-flex items-center justify-center gap-2 bg-roc-500 hover:bg-roc-400 text-white font-semibold px-5 py-2.5 rounded-full transition-colors shadow-lg shadow-roc-500/30 text-sm disabled:opacity-60"
+                    :disabled="submissionsSubmitting"
+                    @click="handleSubmissionSubmit"
+                  >
+                    {{ submissionsSubmitting ? 'Verzenden…' : 'Verstuur project' }}
+                  </button>
+                  <a
+                    v-if="detail.contact_email"
+                    :href="`mailto:${detail.contact_email}?subject=${encodeURIComponent('Quest: ' + detail.title)}`"
+                    class="mt-3 inline-flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white/15 text-white font-semibold px-5 py-2.5 rounded-full transition-colors text-sm"
+                  >
+                    <Swords :size="15" /> Neem contact op per mail
+                  </a>
+                </div>
               </div>
-            </div>
+            </aside>
+
+            <section class="lg:col-span-7 min-w-0">
+              <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-4 md:p-5 h-full">
+                <div class="flex items-center justify-between gap-3 flex-wrap mb-4 pb-4 border-b border-white/10">
+                  <div>
+                    <h3 class="text-sm font-bold text-white">Reacties / Projecten</h3>
+                    <p class="text-xs text-white/45 mt-0.5">Bedrijven zien hier alleen goedgekeurde inzendingen.</p>
+                  </div>
+                  <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-roc-500/20 border border-roc-400/40 text-roc-200 text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-roc-300 animate-pulse" />
+                    {{ detailProjects.length }} zichtbaar
+                  </span>
+                </div>
+
+                <div v-if="projectsLoading" class="text-sm text-white/50">Projecten laden...</div>
+                <div v-else-if="detailProjects.length === 0" class="rounded-2xl border border-dashed border-white/20 bg-white/[0.03] p-5 text-sm text-white/55">
+                  Nog geen goedgekeurde reacties. Wees de eerste met een inzending.
+                </div>
+                <div v-else class="space-y-3">
+                  <article v-for="submission in detailProjects" :key="submission.id" class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-4 md:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="font-semibold text-white text-sm md:text-base">{{ submission.title }}</p>
+                        <p class="text-xs text-white/45 mt-0.5">door {{ submission.author_name }}</p>
+                      </div>
+                      <span class="shrink-0 text-[0.65rem] uppercase tracking-wider font-bold text-white/45 bg-white/5 border border-white/10 rounded-full px-2.5 py-1">
+                        {{ fmtShort(submission.created_at) }}
+                      </span>
+                    </div>
+                    <p class="text-sm text-white/75 leading-relaxed mt-2 whitespace-pre-wrap">{{ submission.description }}</p>
+                    <div v-if="visibleTechStack(submission.tech_stack).length > 0" class="flex flex-wrap gap-1 mt-3">
+                      <span v-for="tech in visibleTechStack(submission.tech_stack).slice(0, 6)" :key="tech" class="px-2 py-0.5 rounded-full text-[0.65rem] bg-white/10 text-white/70">{{ tech }}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                      <a v-if="submission.github_url" :href="submission.github_url" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-roc-300 hover:text-white">GitHub</a>
+                      <a v-if="submission.demo_url" :href="submission.demo_url" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-roc-300 hover:text-white">Demo</a>
+                      <a v-if="submission.image_url" :href="submission.image_url" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-roc-300 hover:text-white">Preview</a>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </section>
           </div>
-
-          <h3 class="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-white/40 mb-2">Briefing</h3>
-          <p class="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{{ detail.description }}</p>
-
-          <a
-            v-if="detail.contact_email"
-            :href="`mailto:${detail.contact_email}?subject=${encodeURIComponent('Quest: ' + detail.title)}`"
-            class="mt-5 inline-flex items-center gap-2 bg-roc-500 hover:bg-roc-400 text-white font-semibold px-5 py-2.5 rounded-full transition-colors shadow-lg shadow-roc-500/30 text-sm"
-          >
-            <Swords :size="15" /> Accepteer quest
-          </a>
         </div>
       </div>
     </div>
 
     <div
       v-if="showForm"
-      class="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-fadein"
-      :style="{ backgroundColor: 'rgba(5,7,12,0.85)', backdropFilter: 'blur(10px)' }"
+      class="modal-backdrop modal-backdrop--light animate-fadein"
       @click="showForm = false"
     >
-      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain" @click.stop>
-        <div class="sticky top-0 bg-white border-b border-gray-100 px-7 py-5 flex items-center justify-between rounded-t-3xl">
+      <div class="modal-card modal-card--light submit-card" @click.stop>
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-7 py-5 flex items-center justify-between rounded-t-3xl shrink-0">
           <div>
             <h2 class="text-xl font-bold text-gray-900">Plaats een quest</h2>
             <p class="text-xs text-gray-500 mt-0.5">Je challenge wordt eerst beoordeeld.</p>
@@ -480,7 +674,7 @@ const resetTilt = (e: MouseEvent) => {
           </button>
         </div>
 
-        <div class="p-7 space-y-5">
+        <div class="modal-body modal-body--light p-7 space-y-5">
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Titel <span class="text-roc-500">*</span></label>
             <input v-model="form.title" class="form-input" placeholder="Naam van de quest" />
@@ -546,7 +740,7 @@ const resetTilt = (e: MouseEvent) => {
           </div>
         </div>
 
-        <div class="sticky bottom-0 bg-white border-t border-gray-100 px-7 py-4 flex gap-3 rounded-b-3xl">
+        <div class="sticky bottom-0 bg-white border-t border-gray-100 px-7 py-4 flex gap-3 rounded-b-3xl shrink-0">
           <button class="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-50 transition-colors" @click="showForm = false">Annuleren</button>
           <button :disabled="submitting" class="flex-1 bg-roc-500 hover:bg-roc-600 text-white py-2.5 rounded-full text-sm font-semibold transition-colors disabled:opacity-60" @click="handleSubmit">
             {{ submitting ? 'Verzenden…' : 'Indienen' }}
@@ -569,9 +763,66 @@ const resetTilt = (e: MouseEvent) => {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: rgba(5, 7, 12, 0.85);
+  backdrop-filter: blur(14px);
+}
+.modal-backdrop--light {
+  z-index: 200;
+  background: rgba(5, 7, 12, 0.82);
+  backdrop-filter: blur(10px);
+}
+.modal-card {
+  width: min(calc(100vw - 1.5rem), 56rem);
+  height: min(calc(100dvh - 2rem), 46rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.75rem;
+  background: #0f1218;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.55);
+}
+.modal-card--light {
+  background: #fff;
+  border-color: rgba(229, 231, 235, 1);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.2);
+}
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-body--light {
+  scrollbar-gutter: stable;
+}
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .animate-fadein { animation: fadein 0.25s ease-out; }
+.form-input-dark {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 9999px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.form-input-dark:focus {
+  border-color: rgba(244, 114, 58, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+}
+.form-input-dark::placeholder { color: rgba(255, 255, 255, 0.35); }
 @keyframes fadein {
   from { opacity: 0; }
   to { opacity: 1; }

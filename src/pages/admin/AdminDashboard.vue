@@ -4,13 +4,15 @@ import { useRouter } from 'vue-router'
 import {
   LayoutDashboard, FolderGit2, Zap, Newspaper, Mail,
   CircleCheck as CheckCircle, Circle as XCircle, Clock, Loader as Loader2,
-  Plus, Trash2, CircleAlert as AlertCircle, LogOut, Eye, EyeOff, Hop as Home,
+  Plus, Trash2, CircleAlert as AlertCircle, LogOut, Eye, EyeOff, Hop as Home, Code2,
 } from 'lucide-vue-next'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../composables/useAuth'
 import type { Project, Challenge, NewsItem } from '../../types'
 import Badge from '../../components/ui/Badge.vue'
 import Modal from '../../components/ui/Modal.vue'
+
+const CHALLENGE_TAG_PREFIX = '__challenge:'
 
 interface ContactMessage {
   id: string
@@ -22,6 +24,7 @@ interface ContactMessage {
 }
 
 type Tab = 'overview' | 'projects' | 'challenges' | 'news' | 'messages'
+  | 'submissions'
 
 const router = useRouter()
 const { user, signOut } = useAuth()
@@ -31,7 +34,9 @@ const projects = ref<Project[]>([])
 const challenges = ref<Challenge[]>([])
 const news = ref<NewsItem[]>([])
 const messages = ref<ContactMessage[]>([])
+const submissions = ref<Project[]>([])
 const messagesError = ref<string | null>(null)
+const submissionsError = ref<string | null>(null)
 const loading = ref(true)
 const newsModalOpen = ref(false)
 const newsForm = ref({ title: '', content: '', excerpt: '', image_url: '' })
@@ -76,6 +81,11 @@ const challengeForm = ref({
   status: 'pending' as Challenge['status'],
 })
 const expandedMessage = ref<string | null>(null)
+const expandedSubmission = ref<string | null>(null)
+
+const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
+const getChallengeId = (project: Project) => project.tech_stack?.find((tech) => tech.startsWith(CHALLENGE_TAG_PREFIX))?.slice(CHALLENGE_TAG_PREFIX.length) ?? null
+const isChallengeProject = (project: Project) => Boolean(getChallengeId(project))
 
 watchEffect(() => {
   if (user.value === null && !loading.value) {
@@ -85,7 +95,10 @@ watchEffect(() => {
 
 const fetchProjects = async () => {
   const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
-  if (data) projects.value = data as Project[]
+  if (data) {
+    projects.value = data as Project[]
+    submissions.value = projects.value.filter((project) => isChallengeProject(project))
+  }
 }
 const fetchChallenges = async () => {
   const { data } = await supabase.from('challenges').select('*').order('created_at', { ascending: false })
@@ -104,9 +117,13 @@ const fetchMessages = async () => {
   messagesError.value = null
   if (data) messages.value = data as ContactMessage[]
 }
+const fetchSubmissions = async () => {
+  submissionsError.value = null
+  submissions.value = projects.value.filter((project) => isChallengeProject(project))
+}
 const fetchAll = async () => {
   loading.value = true
-  await Promise.all([fetchProjects(), fetchChallenges(), fetchNews(), fetchMessages()])
+  await Promise.all([fetchProjects(), fetchChallenges(), fetchNews(), fetchMessages(), fetchSubmissions()])
   loading.value = false
 }
 
@@ -124,6 +141,7 @@ onMounted(() => {
     supabase.channel('admin-challenges').on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, fetchChallenges).subscribe(),
     supabase.channel('admin-news').on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, fetchNews).subscribe(),
     supabase.channel('admin-messages').on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, fetchMessages).subscribe(),
+    supabase.channel('admin-submissions').on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchSubmissions).subscribe(),
   ]
 })
 
@@ -134,6 +152,7 @@ onBeforeUnmount(() => {
 const updateProjectStatus = async (id: string, status: 'approved' | 'rejected') => {
   await supabase.from('projects').update({ status }).eq('id', id)
   projects.value = projects.value.map((p) => p.id === id ? { ...p, status } : p)
+  submissions.value = projects.value.filter((project) => isChallengeProject(project))
 }
 const updateChallengeStatus = async (id: string, status: 'approved' | 'rejected') => {
   await supabase.from('challenges').update({ status }).eq('id', id)
@@ -146,6 +165,7 @@ const deleteNews = async (id: string) => {
 const deleteProject = async (id: string) => {
   await supabase.from('projects').delete().eq('id', id)
   projects.value = projects.value.filter((p) => p.id !== id)
+  submissions.value = projects.value.filter((project) => isChallengeProject(project))
 }
 const deleteChallenge = async (id: string) => {
   await supabase.from('challenges').delete().eq('id', id)
@@ -162,6 +182,13 @@ const deleteMessage = async (id: string) => {
   }
   messages.value = messages.value.filter((m) => m.id !== id)
   if (expandedMessage.value === id) expandedMessage.value = null
+}
+
+const deleteSubmission = async (id: string) => {
+  await supabase.from('projects').delete().eq('id', id)
+  submissions.value = submissions.value.filter((submission) => submission.id !== id)
+  projects.value = projects.value.filter((project) => project.id !== id)
+  if (expandedSubmission.value === id) expandedSubmission.value = null
 }
 
 const openProjectEditor = (project: Project) => {
@@ -232,6 +259,7 @@ const submitProjectEdit = async (e: Event) => {
 
   if (data) {
     projects.value = projects.value.map((p) => (p.id === editingProjectId.value ? (data as Project) : p))
+    submissions.value = projects.value.filter((project) => isChallengeProject(project))
   }
   closeProjectModal()
 }
@@ -414,6 +442,7 @@ const tabs = computed(() => [
   { id: 'overview' as Tab, label: 'Overzicht', icon: LayoutDashboard, count: undefined as number | undefined },
   { id: 'projects' as Tab, label: 'Projecten', icon: FolderGit2, count: pendingProjects.value.length || undefined },
   { id: 'challenges' as Tab, label: 'Challenges', icon: Zap, count: pendingChallenges.value.length || undefined },
+  { id: 'submissions' as Tab, label: 'Inzendingen', icon: Code2, count: submissions.value.filter((s) => s.status === 'pending').length || undefined },
   { id: 'news' as Tab, label: 'Nieuws', icon: Newspaper, count: undefined as number | undefined },
   { id: 'messages' as Tab, label: 'Berichten', icon: Mail, count: unreadMessages.value || undefined },
 ])
@@ -421,6 +450,7 @@ const tabs = computed(() => [
 const overviewCards = computed(() => [
   { label: 'Projecten te beoordelen', value: pendingProjects.value.length, icon: FolderGit2, color: 'text-amber-500', bg: 'bg-amber-50', tab: 'projects' as Tab },
   { label: 'Challenges te beoordelen', value: pendingChallenges.value.length, icon: Zap, color: 'text-roc-500', bg: 'bg-roc-50', tab: 'challenges' as Tab },
+  { label: 'Projectinzendingen', value: submissions.value.filter((s) => s.status === 'pending').length, icon: Code2, color: 'text-violet-600', bg: 'bg-violet-50', tab: 'submissions' as Tab },
   { label: 'Nieuwsberichten', value: news.value.length, icon: Newspaper, color: 'text-emerald-600', bg: 'bg-emerald-50', tab: 'news' as Tab },
   { label: 'Contactberichten', value: messages.value.length, icon: Mail, color: 'text-sky-600', bg: 'bg-sky-50', tab: 'messages' as Tab },
 ])
@@ -444,6 +474,10 @@ const fmtDateTime = (d: string) => new Date(d).toLocaleDateString('nl-NL', { day
 
 const toggleMessage = (id: string) => {
   expandedMessage.value = expandedMessage.value === id ? null : id
+}
+
+const toggleSubmission = (id: string) => {
+  expandedSubmission.value = expandedSubmission.value === id ? null : id
 }
 </script>
 
@@ -593,8 +627,8 @@ const toggleMessage = (id: string) => {
                     <template v-if="p.author_email"> ({{ p.author_email }})</template> · {{ fmtDate(p.created_at) }}
                   </p>
                   <p class="text-gray-500 text-xs line-clamp-2 leading-relaxed">{{ p.description }}</p>
-                  <div v-if="p.tech_stack && p.tech_stack.length > 0" class="flex flex-wrap gap-1 mt-2">
-                    <span v-for="t in p.tech_stack.slice(0, 6)" :key="t" class="px-2 py-0.5 bg-gray-100 rounded-full text-gray-600 text-xs">{{ t }}</span>
+                  <div v-if="visibleTechStack(p.tech_stack).length > 0" class="flex flex-wrap gap-1 mt-2">
+                    <span v-for="t in visibleTechStack(p.tech_stack).slice(0, 6)" :key="t" class="px-2 py-0.5 bg-gray-100 rounded-full text-gray-600 text-xs">{{ t }}</span>
                   </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
@@ -657,6 +691,64 @@ const toggleMessage = (id: string) => {
                     Bewerken
                   </button>
                   <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-red-200" @click="deleteChallenge(c.id)">
+                    <Trash2 :size="12" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="tab === 'submissions'">
+          <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Projectinzendingen</h2>
+            <p class="text-sm text-gray-400 mt-0.5">{{ submissions.length }} inzendingen</p>
+          </div>
+          <div v-if="submissionsError" class="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+            <AlertCircle :size="16" />
+            {{ submissionsError }}
+          </div>
+          <div class="space-y-3">
+            <div v-if="submissions.length === 0" class="text-center py-16 text-gray-400">
+              <Code2 :size="40" class="mx-auto mb-3 opacity-30" />
+              <p class="font-medium">Nog geen inzendingen.</p>
+            </div>
+            <div v-for="s in submissions" v-else :key="s.id" class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-1 flex-wrap">
+                    <span class="text-gray-900 font-semibold text-sm">{{ s.title }}</span>
+                    <Badge :variant="statusVariant(s.status)">{{ statusLabel(s.status) }}</Badge>
+                  </div>
+                  <p class="text-gray-400 text-xs mb-2">
+                    voor challenge <span class="font-medium text-gray-600">{{ challenges.find((c) => c.id === getChallengeId(s))?.title || 'Onbekend' }}</span>
+                    · door <span class="font-medium text-gray-600">{{ s.author_name }}</span>
+                    <template v-if="s.author_email"> ({{ s.author_email }})</template>
+                  </p>
+                  <p v-if="expandedSubmission === s.id" class="text-gray-500 text-sm leading-relaxed whitespace-pre-wrap">{{ s.description }}</p>
+                  <p v-else class="text-gray-500 text-xs line-clamp-2 leading-relaxed">{{ s.description }}</p>
+                  <div v-if="visibleTechStack(s.tech_stack).length > 0" class="flex flex-wrap gap-1 mt-2">
+                    <span v-for="t in visibleTechStack(s.tech_stack).slice(0, 6)" :key="t" class="px-2 py-0.5 bg-gray-100 rounded-full text-gray-600 text-xs">{{ t }}</span>
+                  </div>
+                  <div class="flex flex-wrap gap-3 mt-3 text-xs">
+                    <a v-if="s.github_url" :href="s.github_url" target="_blank" rel="noopener noreferrer" class="text-roc-600 hover:underline">GitHub</a>
+                    <a v-if="s.demo_url" :href="s.demo_url" target="_blank" rel="noopener noreferrer" class="text-roc-600 hover:underline">Demo</a>
+                    <a v-if="s.image_url" :href="s.image_url" target="_blank" rel="noopener noreferrer" class="text-roc-600 hover:underline">Preview</a>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-gray-200" @click="toggleSubmission(s.id)">
+                    <EyeOff v-if="expandedSubmission === s.id" :size="12" />
+                    <Eye v-else :size="12" />
+                    {{ expandedSubmission === s.id ? 'Inklappen' : 'Lees meer' }}
+                  </button>
+                  <button v-if="s.status === 'pending'" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border border-emerald-200" @click="updateSubmissionStatus(s.id, 'approved')">
+                    <CheckCircle :size="12" /> Goedkeuren
+                  </button>
+                  <button v-if="s.status === 'pending'" class="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border border-red-200" @click="updateSubmissionStatus(s.id, 'rejected')">
+                    <XCircle :size="12" /> Afwijzen
+                  </button>
+                  <button class="flex items-center gap-1.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs transition-colors border border-gray-200 hover:border-red-200" @click="deleteSubmission(s.id)">
                     <Trash2 :size="12" />
                   </button>
                 </div>

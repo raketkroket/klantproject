@@ -6,6 +6,9 @@ import { useScrollAnimation } from '../composables/useScrollAnimation'
 import { supabase } from '../lib/supabase'
 import type { Project } from '../types'
 
+const CHALLENGE_TAG_PREFIX = '__challenge:'
+const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
+
 const router = useRouter()
 useScrollAnimation()
 
@@ -269,9 +272,9 @@ const goTo = (i: number) => { activeSlide.value = i }
               </div>
             </div>
             <div class="p-5">
-              <div v-if="p.tech_stack?.length" class="flex flex-wrap items-center gap-2 mb-3">
+              <div v-if="visibleTechStack(p.tech_stack).length" class="flex flex-wrap items-center gap-2 mb-3">
                 <span
-                  v-for="(t, ti) in p.tech_stack.slice(0, 3)" :key="t"
+                  v-for="(t, ti) in visibleTechStack(p.tech_stack).slice(0, 3)" :key="t"
                   :class="[
                     'text-xs font-semibold px-2.5 py-1 rounded-full',
                     ti === 0 ? 'bg-roc-50 text-roc-600' : ti === 1 ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'

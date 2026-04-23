@@ -86,6 +86,10 @@ const expandedSubmission = ref<string | null>(null)
 const visibleTechStack = (stack?: string[] | null) => (stack ?? []).filter((tech) => !tech.startsWith(CHALLENGE_TAG_PREFIX))
 const getChallengeId = (project: Project) => project.tech_stack?.find((tech) => tech.startsWith(CHALLENGE_TAG_PREFIX))?.slice(CHALLENGE_TAG_PREFIX.length) ?? null
 const isChallengeProject = (project: Project) => Boolean(getChallengeId(project))
+const splitProjects = (allProjects: Project[]) => {
+  projects.value = allProjects.filter((project) => !isChallengeProject(project))
+  submissions.value = allProjects.filter((project) => isChallengeProject(project))
+}
 
 watchEffect(() => {
   if (user.value === null && !loading.value) {
@@ -96,8 +100,7 @@ watchEffect(() => {
 const fetchProjects = async () => {
   const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
   if (data) {
-    projects.value = data as Project[]
-    submissions.value = projects.value.filter((project) => isChallengeProject(project))
+    splitProjects(data as Project[])
   }
 }
 const fetchChallenges = async () => {
@@ -119,7 +122,19 @@ const fetchMessages = async () => {
 }
 const fetchSubmissions = async () => {
   submissionsError.value = null
-  submissions.value = projects.value.filter((project) => isChallengeProject(project))
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    submissionsError.value = `Inzendingen laden mislukt: ${error.message}`
+    return
+  }
+
+  if (data) {
+    submissions.value = (data as Project[]).filter((project) => isChallengeProject(project))
+  }
 }
 const fetchAll = async () => {
   loading.value = true
@@ -152,7 +167,10 @@ onBeforeUnmount(() => {
 const updateProjectStatus = async (id: string, status: 'approved' | 'rejected') => {
   await supabase.from('projects').update({ status }).eq('id', id)
   projects.value = projects.value.map((p) => p.id === id ? { ...p, status } : p)
-  submissions.value = projects.value.filter((project) => isChallengeProject(project))
+}
+const updateSubmissionStatus = async (id: string, status: 'approved' | 'rejected') => {
+  await supabase.from('projects').update({ status }).eq('id', id)
+  submissions.value = submissions.value.map((s) => s.id === id ? { ...s, status } : s)
 }
 const updateChallengeStatus = async (id: string, status: 'approved' | 'rejected') => {
   await supabase.from('challenges').update({ status }).eq('id', id)
@@ -165,7 +183,6 @@ const deleteNews = async (id: string) => {
 const deleteProject = async (id: string) => {
   await supabase.from('projects').delete().eq('id', id)
   projects.value = projects.value.filter((p) => p.id !== id)
-  submissions.value = projects.value.filter((project) => isChallengeProject(project))
 }
 const deleteChallenge = async (id: string) => {
   await supabase.from('challenges').delete().eq('id', id)
@@ -259,7 +276,10 @@ const submitProjectEdit = async (e: Event) => {
 
   if (data) {
     projects.value = projects.value.map((p) => (p.id === editingProjectId.value ? (data as Project) : p))
-    submissions.value = projects.value.filter((project) => isChallengeProject(project))
+    const editedProject = data as Project
+    if (isChallengeProject(editedProject)) {
+      submissions.value = submissions.value.map((s) => (s.id === editingProjectId.value ? editedProject : s))
+    }
   }
   closeProjectModal()
 }
